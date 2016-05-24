@@ -1,0 +1,11 @@
+{{extend 'layout.html'}}
+
+<h2>Formulario Crear Listas</h2>
+<form enctype="multipart/form-data" role="form" action="{{=URL('default','addlist')}}" method="post">
+  <div class="form-group">
+	    <label for="nombre">Nombre Lista:</label>
+			<input name="nombre" class="form-control" id="nombre">
+	</div>
+	<button type="submit" class="btn btn-primary">Submit</button>
+</form>
+

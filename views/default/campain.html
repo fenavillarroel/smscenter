@@ -1,0 +1,54 @@
+{{extend 'layout.html'}}
+
+<link rel="stylesheet" href="http://cdn.datatables.net/1.10.2/css/jquery.dataTables.min.css"></style>
+<script type="text/javascript" src="http://cdn.datatables.net/1.10.2/js/jquery.dataTables.min.js"></script>
+
+<h2>Mis Campañas</h2>
+<table id="myTable" class="table table-striped" >
+   <thead>
+	   <tr>
+			<th>id</th>
+			<th>Nombre Campaña</th>
+			<th>Fecha</th>
+			<th>Estado</th>
+			<th>Total</th>
+			<th>Pendientes</th>
+			<th>Cola</th>
+			<th>Enviados</th>
+			<th>Entregados</th>
+			<th>Fallidos</th>
+			<th>Procesados</th>
+			<th>Editar</th>
+		</tr>
+		</thead>
+		<tbody>
+			{{for r in rws:}}
+				<tr>
+					<td>{{=r[0]}}</td>
+					<td>{{=r[1]}}</td>
+					<td>{{=r[2]}}</td>
+				  {{if r[3]=='t' or r[3]=='T':}}
+						<td>Activa</td>
+					{{else:}}
+						<td>Inactiva</td>
+					{{pass}}
+					<td>{{=r[4]}}</td>
+					<td>{{=r[5]}}</td>
+					<td>{{=r[6]}}</td>
+					<td>{{=r[7]}}</td>
+					<td>{{=r[8]}}</td>
+					<td>{{=r[9]}}</td>
+					<td>{{=(r[6]+r[7]+r[8]+r[9])}}</td>
+					<td><a href="{{=URL('default','updatecampain', args=[r[0]])}}">Editar</a></td>
+				{{pass}}
+				</tr>
+     </tbody>
+</table>
+<br>
+<a href="addcampain" class="btn btn-info" role="button">Agregar Campaña</a>
+
+<script type="text/javascript">
+	$(document).ready(function(){
+	$('#myTable').dataTable();
+	});
+</script>

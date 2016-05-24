@@ -1,0 +1,36 @@
+{{extend 'layout.html'}}
+
+<link rel="stylesheet" href="http://cdn.datatables.net/1.10.2/css/jquery.dataTables.min.css"></style>
+<script type="text/javascript" src="http://cdn.datatables.net/1.10.2/js/jquery.dataTables.min.js"></script>
+
+<h2>Mis Listas</h2>
+<table id="myTable" class="table table-striped" >
+   <thead>
+	   <tr>
+		  <th>Id</th>
+			<th>Nombre Lista</th>
+			<th>Editar</th>
+			<th>Ver Contactos</th>
+			<th>Importar Contactos</th>
+		</tr>
+		</thead>
+		<tbody>
+			{{for r in rws:}}
+				<tr>
+					<td>{{=r[0]}}</td>
+					<td>{{=r[1]}}</td>
+					<td><a href="{{=URL('default','lista', args=[r[0]])}}">Editar</a></td>
+					<td><a href="{{=URL('default','contactos', args=[r[0]])}}">Ver Contactos</a></td>
+					<td><a href="{{=URL('default','uploadfile',args=[auth.user.id,r[0]])}}">Subir Contactos</a></td>
+				{{pass}}
+				</tr>
+     </tbody>
+</table>
+<br>
+<a href="addlist" class="btn btn-info" role="button">Agregar Lista</a>
+
+<script type="text/javascript">
+	$(document).ready(function(){
+	$('#myTable').dataTable();
+	});
+</script>
