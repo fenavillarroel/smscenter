@@ -3,3 +3,5 @@ databases
 errors
 cache
 sessions
+.*.swp
+.*.swo

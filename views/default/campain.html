@@ -23,7 +23,11 @@
 		</thead>
 		<tbody>
 			{{for r in rws:}}
-				<tr>
+				{{if r[3]=='t' or r[3]=='T':}}
+					<tr class="success">
+				{{else:}}
+					<tr class="danger">
+				{{pass}}
 					<td>{{=r[0]}}</td>
 					<td>{{=r[1]}}</td>
 					<td>{{=r[2]}}</td>
