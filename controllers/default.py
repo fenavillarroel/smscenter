@@ -137,28 +137,28 @@ def campain():
 
     rws  =  db.executesql('select id,nombre,fecha,estado,  \
                                 (select count(*) as total from contactos  \
-                                join lista on campain.id_lista=lista.id    \
-                                where campain.id_clte=%s),   \
+                                join lista on contactos.id_lista=lista.id    \
+                                where campain.id_clte=%s and campain.id_lista=lista.id),   \
                                 (select count(*) as pendiente from contactos \
-                                join lista on campain.id_lista=lista.id \
+                                join lista on contactos.id_lista=lista.id \
                                 join estadosms on estadosms.id=contactos.estado  \
-                                where campain.id_clte=%s and estadosms.id=1), \
+                                where campain.id_clte=%s and campain.id_lista=lista.id and estadosms.id=1), \
                                 (select count(*) as cola from contactos \
-                                join lista on campain.id_lista=lista.id \
+                                join lista on contactos.id_lista=lista.id \
                                 join estadosms on estadosms.id=contactos.estado  \
-                                where campain.id_clte=%s and estadosms.id=2), \
+                                where campain.id_clte=%s and campain.id_lista=lista.id and estadosms.id=2), \
                                 (select count(*) as enviados from contactos \
-                                join lista on campain.id_lista=lista.id \
+                                join lista on contactos.id_lista=lista.id \
                                 join estadosms on estadosms.id=contactos.estado  \
-                                where campain.id_clte=%s and estadosms.id=3), \
+                                where campain.id_clte=%s and campain.id_lista=lista.id and  estadosms.id=3), \
                                 (select count(*) as entregados from contactos \
-                                join lista on campain.id_lista=lista.id \
+                                join lista on contactos.id_lista=lista.id \
                                 join estadosms on estadosms.id=contactos.estado  \
-                                where campain.id_clte=%s and estadosms.id=4), \
+                                where campain.id_clte=%s and campain.id_lista=lista.id and estadosms.id=4), \
                                 (select count(*) as fallidos from contactos \
-                                join lista on campain.id_lista=lista.id \
+                                join lista on contactos.id_lista=lista.id \
                                 join estadosms on estadosms.id=contactos.estado  \
-                                where campain.id_clte=%s and estadosms.id=5) \
+                                where campain.id_clte=%s and campain.id_lista=lista.id and estadosms.id=5) \
                             from campain    \
                             where id_clte=%s    \
                             order by id desc' % (auth.user.id,auth.user.id,auth.user.id,auth.user.id,auth.user.id,auth.user.id,auth.user.id))

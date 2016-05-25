@@ -173,4 +173,4 @@ db.prefix.tarifa.requires = IS_IN_DB(db,db.tarifas.id,'%(nombre)s')
 
 
 
-
+auth.settings.actions_disabled.append('register') 
