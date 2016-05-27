@@ -96,14 +96,27 @@ def addcampain():
 
     if form.process().accepted:
 
+        if auth.user.prepago:
+
+            if auth.user.saldo <= 0: #Sin saldo prepago no puede crear campañas
+        
+                session.flash = T("Su cuenta no registra Saldo Para Crear Campaña!!!")
+                redirect(URL("campain"))
+
+            
+
         if form.vars.estado:
             e='T'
         else:
             e='F'
-        db.executesql("insert into campain (nombre,fecha,id_clte,id_lista,estado) values ( \
-                        '%s','%s',%s,%s,'%s')" % (form.vars.nombre,form.vars.fecha,auth.user.id,form.vars.lista,e))
-        db.commit()
-
+        try:
+            db.executesql("insert into campain (nombre,fecha,id_clte,id_lista,estado) values ( \
+                            '%s','%s',%s,%s,'%s')" % (form.vars.nombre,form.vars.fecha,auth.user.id,form.vars.lista,e))
+            db.commit()
+        except:
+            session.flash = T("Error al Crear Campaña!!!")
+            redirect(URL("campain"))
+            
         session.flash = T("Campaña Correctamente Creada!!!")
 
         redirect(URL('campain'))
@@ -114,6 +127,13 @@ def addcampain():
 def addlist():
 
     if request.vars:
+
+        if auth.user.prepago:
+
+            if auth.user.saldo <= 0: #Sin saldo prepago no puede crear Listas
+        
+                session.flash = T("Su cuenta no registra Saldo Para Crear Listas !!!")
+                redirect(URL("rlistas"))
 
         db.executesql("insert into lista (nombre,id_clte) values ('%s',%s)" % (request.vars.nombre,auth.user.id))
         db.commit()
@@ -195,11 +215,16 @@ def updatecampain():
             e='T'
         else:
             e='F'
+        try:
 
-        db.executesql("update campain set nombre='%s', fecha='%s',id_lista=%s,estado='%s' where id=%s" % (form.vars.nombre,form.vars.fecha,form.vars.lista,e,c))
-        db.commit()
+            db.executesql("update campain set nombre='%s', fecha='%s',id_lista=%s,estado='%s' where id=%s" % (form.vars.nombre,form.vars.fecha,form.vars.lista,e,c))
+            db.commit()
+        except:
+
+            session.flash = T("Error al Actuaizar Campaña!!!")
+            redirect(URL('campain'))
+
         session.flash = T("Campaña Actuaizada!!!")
-
         redirect(URL('campain'))
 
 
@@ -230,30 +255,52 @@ def uploadfile():
     #form1.process(formname='form1')
 
     if form.accepts(request.vars, session,formname='form'):
+
+        try:
             with open('applications/smscenter/uploads/'+form.vars.Archivo,'rb') as fin: 
             # csv.DictReader uses first line in file for column headings by default
                 dr = csv.reader(fin) # comma is default delimiter
                 for row in dr:
+                    try:
+                        db.executesql("insert into contactos (numero,msg,id_lista) values ('%s','%s',%s)" % (row[0],row[1],lista))
+                        db.commit()
+                    except:
+                        session.flash = T("Error al Procesar Atchivo CSV Favor Importar Nuevamente!!!")
+                        redirect(URL('rlistas'))
 
-                    db.executesql("insert into contactos (numero,msg,id_lista) values ('%s','%s',%s)" % (row[0],row[1],lista))
-                    db.commit()
             
             os.system('rm %s'% 'applications/smscenter/uploads/'+form.vars.Archivo)
             session.flash = T("Contactos Insertados Correctamente!!!")
 
             redirect(URL('rlistas'))
 
+        except:
+
+            session.flash = T("Error al Leer Archivo CSV Favor Importar Nuevamente!!!")
+            redirect(URL('rlistas'))
+
 
     if form1.accepts(request.vars, session,formname='form1'):
+
+        try:
             with open('applications/smscenter/uploads/'+form1.vars.Archivo,'rb') as fin: 
             # csv.DictReader uses first line in file for column headings by default
                 dr = csv.reader(fin) # comma is default delimiter
                 for row in dr:
-                    db.executesql("insert into contactos (numero,msg,id_lista) values ('%s','%s',%s)" % (row[0],form1.vars.Mensaje,lista))
-                    db.commit()
+                    try:
+                        db.executesql("insert into contactos (numero,msg,id_lista) values ('%s','%s',%s)" % (row[0],form1.vars.Mensaje,lista))
+                        db.commit()
+                    except:
+                        session.flash = T("Error al Procesar Atchivo CSV Favor Importar Nuevamente!!!")
+                        redirect(URL('rlistas'))
             os.system('rm %s'% 'applications/smscenter/uploads/'+form1.vars.Archivo)
             session.flash = T("Contactos y Mensaje Manual Correctamente Insertados!!!")
 
+            redirect(URL('rlistas'))
+        
+        except:
+
+            session.flash = T("Error al Leer Archivo CSV Favor Importar Nuevamente!!!")
             redirect(URL('rlistas'))
 
     return dict(form=form,form1=form1)
