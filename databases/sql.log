@@ -1,0 +1,133 @@
+timestamp: 2016-05-22T12:30:26.194620
+CREATE TABLE auth_user(
+    id SERIAL PRIMARY KEY,
+    first_name VARCHAR(128),
+    last_name VARCHAR(128),
+    email VARCHAR(512),
+    password VARCHAR(512),
+    registration_key VARCHAR(512),
+    reset_password_key VARCHAR(512),
+    registration_id VARCHAR(512),
+    nombres VARCHAR(128),
+    rut VARCHAR(28),
+    direccion VARCHAR(128),
+    giro VARCHAR(128),
+    prepago CHAR(1) NOT NULL DEFAULT 'T',
+    saldo INTEGER NOT NULL DEFAULT 0,
+    telefono VARCHAR(128)
+);
+success!
+timestamp: 2016-05-22T12:30:26.866767
+CREATE TABLE auth_group(
+    id SERIAL PRIMARY KEY,
+    role VARCHAR(512),
+    description TEXT
+);
+success!
+timestamp: 2016-05-22T12:30:26.918211
+CREATE TABLE auth_membership(
+    id SERIAL PRIMARY KEY,
+    user_id INTEGER REFERENCES auth_user (id) ON DELETE CASCADE  ,
+    group_id INTEGER REFERENCES auth_group (id) ON DELETE CASCADE  
+);
+success!
+timestamp: 2016-05-22T12:30:27.150911
+CREATE TABLE auth_permission(
+    id SERIAL PRIMARY KEY,
+    group_id INTEGER REFERENCES auth_group (id) ON DELETE CASCADE  ,
+    name VARCHAR(512),
+    table_name VARCHAR(512),
+    record_id INTEGER
+);
+success!
+timestamp: 2016-05-22T12:30:27.291457
+CREATE TABLE auth_event(
+    id SERIAL PRIMARY KEY,
+    time_stamp TIMESTAMP,
+    client_ip VARCHAR(512),
+    user_id INTEGER REFERENCES auth_user (id) ON DELETE CASCADE  ,
+    origin VARCHAR(512),
+    description TEXT
+);
+success!
+timestamp: 2016-05-22T12:30:27.354846
+CREATE TABLE auth_cas(
+    id SERIAL PRIMARY KEY,
+    user_id INTEGER REFERENCES auth_user (id) ON DELETE CASCADE  ,
+    created_on TIMESTAMP,
+    service VARCHAR(512),
+    ticket VARCHAR(512),
+    renew CHAR(1)
+);
+success!
+timestamp: 2016-05-22T12:30:27.418188
+CREATE TABLE gateway(
+    id SERIAL PRIMARY KEY,
+    nombre VARCHAR(56) NOT NULL,
+    url VARCHAR(256) NOT NULL,
+    estado CHAR(1) NOT NULL DEFAULT 'T'
+);
+success!
+timestamp: 2016-05-22T12:30:27.467084
+CREATE TABLE estadosms(
+    id SERIAL PRIMARY KEY,
+    nombre VARCHAR(56) NOT NULL
+);
+success!
+timestamp: 2016-05-22T12:30:27.606750
+CREATE TABLE lista(
+    id SERIAL PRIMARY KEY,
+    nombre VARCHAR(56) NOT NULL,
+    id_clte INTEGER REFERENCES auth_user (id) ON DELETE CASCADE  NOT NULL 
+);
+success!
+timestamp: 2016-05-22T12:30:27.709330
+CREATE TABLE contactos(
+    id SERIAL PRIMARY KEY,
+    numero VARCHAR(56) NOT NULL,
+    msg VARCHAR(140) NOT NULL DEFAULT '',
+    gw INTEGER REFERENCES gateway (id) ON DELETE CASCADE  ,
+    id_lista INTEGER REFERENCES lista (id) ON DELETE CASCADE  NOT NULL ,
+    estado INTEGER REFERENCES estadosms (id) ON DELETE CASCADE  NOT NULL DEFAULT 1 
+);
+success!
+timestamp: 2016-05-22T12:30:27.841465
+CREATE TABLE campain(
+    id SERIAL PRIMARY KEY,
+    nombre VARCHAR(56) NOT NULL,
+    fecha TIMESTAMP NOT NULL DEFAULT '2016-05-22 12:30:27',
+    Total INTEGER NOT NULL DEFAULT 0,
+    Cola INTEGER NOT NULL DEFAULT 0,
+    Enviados INTEGER NOT NULL DEFAULT 0,
+    Entregados INTEGER NOT NULL DEFAULT 0,
+    Fallidos INTEGER NOT NULL DEFAULT 0,
+    id_clte INTEGER REFERENCES auth_user (id) ON DELETE CASCADE  NOT NULL ,
+    id_lista INTEGER REFERENCES lista (id) ON DELETE CASCADE  NOT NULL ,
+    estado CHAR(1) NOT NULL DEFAULT 'T'
+);
+success!
+timestamp: 2016-05-22T12:30:28.002757
+CREATE TABLE tarifas(
+    id SERIAL PRIMARY KEY,
+    nombre VARCHAR(56) NOT NULL
+);
+success!
+timestamp: 2016-05-22T12:30:28.088813
+CREATE TABLE prefix(
+    id SERIAL PRIMARY KEY,
+    prefix VARCHAR(56) NOT NULL,
+    tarifa INTEGER REFERENCES tarifas (id) ON DELETE CASCADE  NOT NULL ,
+    nombre VARCHAR(56) NOT NULL
+);
+success!
+timestamp: 2016-05-23T21:53:03.645111
+ALTER TABLE campain DROP COLUMN fallidos;
+timestamp: 2016-05-23T21:53:04.021849
+ALTER TABLE campain DROP COLUMN enviados;
+timestamp: 2016-05-23T21:53:04.022464
+ALTER TABLE campain DROP COLUMN entregados;
+timestamp: 2016-05-23T21:53:04.046814
+ALTER TABLE campain DROP COLUMN total;
+timestamp: 2016-05-23T21:53:04.047662
+ALTER TABLE campain DROP COLUMN cola;
+success!

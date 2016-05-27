@@ -1,7 +1,7 @@
 *.pyc
-databases/*
-errors/*
-cache/*
-sessions/*
 .*.swp
 .*.swo
+databases/*.table
+databases/*.log
+errors/*
+sessions/session*

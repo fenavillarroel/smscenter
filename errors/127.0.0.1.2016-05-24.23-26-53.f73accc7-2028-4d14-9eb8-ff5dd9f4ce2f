@@ -1,0 +1,709 @@
+(dp1
+S'output'
+p2
+S"<class 'psycopg2.ProgrammingError'> el nombre de tabla \xc2\xabcontactos\xc2\xbb fue especificado m\xc3\xa1s de una vez\n"
+p3
+sS'layer'
+p4
+S'/home/fvillarroel/web2py/applications/smscenter/controllers/default.py'
+p5
+sS'code'
+p6
+S'# -*- coding: utf-8 -*-\n# this file is released under public domain and you can use without limitations\n\n#########################################################################\n## This is a sample controller\n## - index is the default action of any application\n## - user is required for authentication and authorization\n## - download is for downloading files uploaded in the db (does streaming)\n#########################################################################\n\ndef index():\n    """\n    example action using the internationalization operator T and flash\n    rendered by views/default/index.html or views/generic.html\n\n    if you need a simple wiki simply replace the two lines below with:\n    return auth.wiki()\n    """\n    #response.flash = T("Hello World")\n    return dict(message=T(\'Welcome to web2py!\'))\n\n\ndef user():\n    """\n    exposes:\n    http://..../[app]/default/user/login\n    http://..../[app]/default/user/logout\n    http://..../[app]/default/user/register\n    http://..../[app]/default/user/profile\n    http://..../[app]/default/user/retrieve_password\n    http://..../[app]/default/user/change_password\n    http://..../[app]/default/user/bulk_register\n    use @auth.requires_login()\n        @auth.requires_membership(\'group name\')\n        @auth.requires_permission(\'read\',\'table name\',record_id)\n    to decorate functions that need access control\n    also notice there is http://..../[app]/appadmin/manage/auth to allow administrator to manage users\n    """\n    return dict(form=auth())\n\n\n@cache.action()\ndef download():\n    """\n    allows downloading of uploaded files\n    http://..../[app]/default/download/[filename]\n    """\n    return response.download(request, db)\n\n\ndef call():\n    """\n    exposes services. for example:\n    http://..../[app]/default/call/jsonrpc\n    decorate with @services.jsonrpc the functions to expose\n    supports xml, json, xmlrpc, jsonrpc, amfrpc, rss, csv\n    """\n    return service()\n\n@auth.requires_login()\ndef lista():\n   \n    r=request.args\n    if r:\n        l=db.executesql(\'select * from lista where id=%s\' % r[0])[0]\n        i=l[0]\n        n=l[1]\n    else:\n        i,n=\'\',\'\'\n\n\n    #if form.accepts(request.vars,session):\n    if request.vars:\n\n        try:\n            db.executesql("update lista set nombre=\'%s\' where id=%s" % (request.vars.nombre,request.vars.id))\n            db.commit()\n        except:\n            pass\n        redirect(URL(\'rlistas\'))\n\n    return dict(i=i,n=n)\n\n@auth.requires_login()\ndef addcampain():\n\n    l=db.executesql(\'select nombre,id from lista where id_clte=%s order by nombre asc\' % auth.user.id)\n    d={}\n    for i in l:\n        d[i[1]]=i[0]\n\n    form=SQLFORM.factory(Field(\'nombre\',\'string\',length=56,requires=IS_NOT_EMPTY()),\n                        Field(\'fecha\',\'datetime\',requires=IS_DATETIME(format=\'%Y-%m-%d %H:%M:%S\'),default=datetime.datetime.now()),\n                        Field(\'lista\',\'integer\',requires=IS_IN_SET(d),represent= lambda value, row: d[value]),\n                        Field(\'estado\',\'boolean\',default=\'f\'),formstyle=\'bootstrap\',_class="form-group")\n\n    if form.process().accepted:\n\n        if form.vars.estado:\n            e=\'T\'\n        else:\n            e=\'F\'\n        db.executesql("insert into campain (nombre,fecha,id_clte,id_lista,estado) values ( \\\n                        \'%s\',\'%s\',%s,%s,\'%s\')" % (form.vars.nombre,form.vars.fecha,auth.user.id,form.vars.lista,e))\n        db.commit()\n\n        session.flash = T("Campa\xc3\xb1a Correctamente Creada!!!")\n\n        redirect(URL(\'campain\'))\n\n    return dict(form=form)\n    \n@auth.requires_login()\ndef addlist():\n\n    if request.vars:\n\n        db.executesql("insert into lista (nombre,id_clte) values (\'%s\',%s)" % (request.vars.nombre,auth.user.id))\n        db.commit()\n        l=db.executesql("select currval(\'lista_id_seq\')")[0][0]\n        session.flash = T("Lista Correctamente Creada!!!")\n\n        redirect(URL(\'uploadfile\',args=[auth.user.id,l]))\n\n    return locals()\n\n@auth.requires_login()\ndef rlistas():\n\n    rws=db.executesql(\'select * from lista where id_clte=%s order by id desc\' % (auth.user.id,))\n\n    return dict(rws=rws)\n\n\n@auth.requires_login()\ndef campain():\n\n    rws  =  db.executesql(\'select id,nombre,fecha,estado,  \\\n                                (select count(*) as total from contactos  \\\n                                join lista on campain.id_lista=lista.id    \\\n                                join contactos on lista.id=contactos.id_lista \\\n                                where campain.id_clte=%s),   \\\n                                (select count(*) as pendiente from contactos \\\n                                join lista on campain.id_lista=lista.id \\\n                                join contactos on lista.id=contactos.id_lista \\\n                                join estadosms on estadosms.id=contactos.estado  \\\n                                where campain.id_clte=%s and estadosms.id=1), \\\n                                (select count(*) as cola from contactos \\\n                                join lista on campain.id_lista=lista.id \\\n                                join contactos on lista.id=contactos.id_lista \\\n                                join estadosms on estadosms.id=contactos.estado  \\\n                                where campain.id_clte=%s and estadosms.id=2), \\\n                                (select count(*) as enviados from contactos \\\n                                join lista on campain.id_lista=lista.id \\\n                                join contactos on lista.id=contactos.id_lista \\\n                                join estadosms on estadosms.id=contactos.estado  \\\n                                where campain.id_clte=%s and estadosms.id=3), \\\n                                (select count(*) as entregados from contactos \\\n                                join lista on campain.id_lista=lista.id \\\n                                join contactos on lista.id=contactos.id_lista \\\n                                join estadosms on estadosms.id=contactos.estado  \\\n                                where campain.id_clte=%s and estadosms.id=4), \\\n                                (select count(*) as fallidos from contactos \\\n                                join lista on campain.id_lista=lista.id \\\n                                join contactos on lista.id=contactos.id_lista \\\n                                join estadosms on estadosms.id=contactos.estado  \\\n                                where campain.id_clte=%s and estadosms.id=5) \\\n                            from campain    \\\n                            where id_clte=%s    \\\n                            order by id desc\' % (auth.user.id,auth.user.id,auth.user.id,auth.user.id,auth.user.id,auth.user.id,auth.user.id))\n\n    return dict(rws=rws)\n\n\n@auth.requires_login()\ndef updatecampain():\n\n    c=request.args[0]\n\n    l=db.executesql(\'select nombre,id from lista where id_clte=%s order by nombre asc\' % auth.user.id)\n    d={}\n    for i in l:\n        d[i[1]]=i[0]\n    dat=db.executesql(\'select * from campain where id=%s\' % (c,))[0]\n    cam=dat[4]\n    if dat[5]==\'T\' or dat[5]==\'t\':\n        v=True\n    else:\n        v=False\n\n    form=SQLFORM.factory(Field(\'nombre\',\'string\',length=56,requires=IS_NOT_EMPTY(),default=dat[1]),\n                        Field(\'fecha\',\'datetime\',requires=IS_DATETIME(format=\'%Y-%m-%d %H:%M:%S\'),default=dat[2]),\n                        Field(\'lista\',\'integer\',requires=IS_IN_SET(d),default=cam),\n                        Field(\'estado\',\'boolean\',default=v),formstyle=\'bootstrap\',_class="form-group")\n\n\n\n    if form.process().accepted:\n\n        if form.vars.estado:\n            e=\'T\'\n        else:\n            e=\'F\'\n\n        db.executesql("update campain set nombre=\'%s\', fecha=\'%s\',id_lista=%s,estado=\'%s\' where id=%s" % (form.vars.nombre,form.vars.fecha,form.vars.lista,e,c))\n        db.commit()\n        session.flash = T("Campa\xc3\xb1a Actuaizada!!!")\n\n        redirect(URL(\'campain\'))\n\n\n    return dict(form=form)\n\n@auth.requires_login()\ndef contactos():\n\n    idlista=request.args[0]\n\n    rws=db.executesql(\'select contactos.id,contactos.numero,contactos.msg,estadosms.nombre from contactos \\\n                        join estadosms on estadosms.id=contactos.estado \\\n                        where contactos.id_lista=%s \\\n                        order by contactos.id desc\' % (idlista,))\n\n\n    return dict(rws=rws)\n\n@auth.requires_login()\ndef uploadfile():\n\n    id_user,lista=request.args[0],request.args[1]\n\n    form=SQLFORM.factory(Field(\'Archivo\',\'upload\',custom_store=store_file),formstyle=\'bootstrap\',_class="form-group")\n    #form.process(formname=\'form\')\n    form1=SQLFORM.factory(Field(\'Mensaje\',\'text\',requires=IS_NOT_EMPTY()),\n                        Field(\'Archivo\',\'upload\',custom_store=store_file),formstyle=\'bootstrap\',_class="form-group")\n    #form1.process(formname=\'form1\')\n\n    if form.accepts(request.vars, session,formname=\'form\'):\n            with open(\'applications/smscenter/uploads/\'+form.vars.Archivo,\'rb\') as fin: \n            # csv.DictReader uses first line in file for column headings by default\n                dr = csv.reader(fin) # comma is default delimiter\n                for row in dr:\n\n                    db.executesql("insert into contactos (numero,msg,id_lista) values (\'%s\',\'%s\',%s)" % (row[0],row[1],lista))\n                    db.commit()\n            \n            os.system(\'rm %s\'% \'applications/smscenter/uploads/\'+form.vars.Archivo)\n            session.flash = T("Contactos Insertados Correctamente!!!")\n\n            redirect(URL(\'rlistas\'))\n\n\n    if form1.accepts(request.vars, session,formname=\'form1\'):\n            with open(\'applications/smscenter/uploads/\'+form1.vars.Archivo,\'rb\') as fin: \n            # csv.DictReader uses first line in file for column headings by default\n                dr = csv.reader(fin) # comma is default delimiter\n                for row in dr:\n                    db.executesql("insert into contactos (numero,msg,id_lista) values (\'%s\',\'%s\',%s)" % (row[0],form1.vars.Mensaje,lista))\n                    db.commit()\n            os.system(\'rm %s\'% \'applications/smscenter/uploads/\'+form1.vars.Archivo)\n            session.flash = T("Contactos y Mensaje Manual Correctamente Insertados!!!")\n\n            redirect(URL(\'rlistas\'))\n\n    return dict(form=form,form1=form1)\n\ndef store_file(file,filename=None,path=None):\n    import os\n    import shutil\n    path="applications/smscenter/uploads/"\n    #if not os.path.exists(path):\n    #    os.makedirs(path)\n    pathfilename = os.path.join(path, filename)\n    dest_file = open(pathfilename, \'wb\')\n    try:\n        shutil.copyfileobj(file, dest_file)\n    finally:\n        dest_file.close()\n    return filename\n\ndef retrieve_file(filename, path=None):\n    path = "uploads/"\n    return (filename, open(os.path.join(path, filename), \'rb\'))\n\nresponse._vars=response._caller(campain)\n'
+p7
+sS'snapshot'
+p8
+(dp9
+S'exception'
+p10
+(dp11
+S'__module__'
+p12
+S"'psycopg2'"
+p13
+sS'__getslice__'
+p14
+S"<method-wrapper '__getslice__' of ProgrammingError object>"
+p15
+sS'__str__'
+p16
+S"<method-wrapper '__str__' of ProgrammingError object>"
+p17
+sS'__reduce__'
+p18
+S'<built-in method __reduce__ of ProgrammingError object>'
+p19
+sS'__dict__'
+p20
+S'{}'
+p21
+sS'__sizeof__'
+p22
+S'<built-in method __sizeof__ of ProgrammingError object>'
+p23
+sS'__weakref__'
+p24
+S'None'
+p25
+sS'__init__'
+p26
+S"<method-wrapper '__init__' of ProgrammingError object>"
+p27
+sS'__setattr__'
+p28
+S"<method-wrapper '__setattr__' of ProgrammingError object>"
+p29
+sS'__reduce_ex__'
+p30
+S'<built-in method __reduce_ex__ of ProgrammingError object>'
+p31
+sS'__new__'
+p32
+S'<built-in method __new__ of type object>'
+p33
+sS'diag'
+p34
+S'<psycopg2._psycopg.Diagnostics object>'
+p35
+sS'__format__'
+p36
+S'<built-in method __format__ of ProgrammingError object>'
+p37
+sS'__class__'
+p38
+S"<class 'psycopg2.ProgrammingError'>"
+p39
+sS'pgerror'
+p40
+S"'ERROR:  el nombre de tabla \\xc2\\xabcontactos\\xc2\\xbb fue especificado m\\xc3\\xa1s de una vez\\n'"
+p41
+sS'__doc__'
+p42
+S"'Error related to database programming (SQL error, table not found etc).'"
+p43
+sS'__getitem__'
+p44
+S"<method-wrapper '__getitem__' of ProgrammingError object>"
+p45
+sS'__setstate__'
+p46
+S'<built-in method __setstate__ of ProgrammingError object>'
+p47
+sS'__getattribute__'
+p48
+S"<method-wrapper '__getattribute__' of ProgrammingError object>"
+p49
+sS'args'
+p50
+S"('el nombre de tabla \\xc2\\xabcontactos\\xc2\\xbb fue especificado m\\xc3\\xa1s de una vez\\n',)"
+p51
+sS'__subclasshook__'
+p52
+S'<built-in method __subclasshook__ of type object>'
+p53
+sS'pgcode'
+p54
+S"'42712'"
+p55
+sS'__unicode__'
+p56
+S'<built-in method __unicode__ of ProgrammingError object>'
+p57
+sS'cursor'
+p58
+S'<cursor object at 0x7fda74215908; closed: 0>'
+p59
+sS'__delattr__'
+p60
+S"<method-wrapper '__delattr__' of ProgrammingError object>"
+p61
+sS'__repr__'
+p62
+S"<method-wrapper '__repr__' of ProgrammingError object>"
+p63
+sS'__hash__'
+p64
+S"<method-wrapper '__hash__' of ProgrammingError object>"
+p65
+ssS'evalue'
+p66
+S'el nombre de tabla \xc2\xabcontactos\xc2\xbb fue especificado m\xc3\xa1s de una vez\n'
+p67
+sS'request'
+p68
+cgluon.html
+XML_unpickle
+p69
+(S's\x96`\x00\x00<div><table><tr><td style="font-weight:bold;vertical-align:top;">ajax</td><td style="vertical-align:top;">:</td><td><div>False</div></td></tr><tr><td style="font-weight:bold;vertical-align:top;">application</td><td style="vertical-align:top;">:</td><td><div>smscenter</div></td></tr><tr><td style="font-weight:bold;vertical-align:top;">args</td><td style="vertical-align:top;">:</td><td><div><table></table></div></td></tr><tr><td style="font-weight:bold;vertical-align:top;">cid</td><td style="vertical-align:top;">:</td><td><div>None</div></td></tr><tr><td style="font-weight:bold;vertical-align:top;">client</td><td style="vertical-align:top;">:</td><td><div>127.0.0.1</div></td></tr><tr><td style="font-weight:bold;vertical-align:top;">controller</td><td style="vertical-align:top;">:</td><td><div>default</div></td></tr><tr><td style="font-weight:bold;vertical-align:top;">cookies</td><td style="vertical-align:top;">:</td><td><div><table><tr><td style="font-weight:bold;vertical-align:top;">session_id_admin</td><td style="vertical-align:top;">:</td><td><div>127.0.0.1-00f9bd61-fe13-4879-8c36-144751f15141<table><tr><td style="font-weight:bold;vertical-align:top;">comment</td><td style="vertical-align:top;">:</td><td><div></div></td></tr><tr><td style="font-weight:bold;vertical-align:top;">domain</td><td style="vertical-align:top;">:</td><td><div></div></td></tr><tr><td style="font-weight:bold;vertical-align:top;">expires</td><td style="vertical-align:top;">:</td><td><div></div></td></tr><tr><td style="font-weight:bold;vertical-align:top;">httponly</td><td style="vertical-align:top;">:</td><td><div></div></td></tr><tr><td style="font-weight:bold;vertical-align:top;">max-age</td><td style="vertical-align:top;">:</td><td><div></div></td></tr><tr><td style="font-weight:bold;vertical-align:top;">path</td><td style="vertical-align:top;">:</td><td><div></div></td></tr><tr><td style="font-weight:bold;vertical-align:top;">secure</td><td style="vertical-align:top;">:</td><td><div></div></td></tr><tr><td style="font-weight:bold;vertical-align:top;">version</td><td style="vertical-align:top;">:</td><td><div></div></td></tr></table></div></td></tr><tr><td style="font-weight:bold;vertical-align:top;">session_id_sms</td><td style="vertical-align:top;">:</td><td><div>127.0.0.1-fd00999c-ebe8-4377-ae64-2592babc088a<table><tr><td style="font-weight:bold;vertical-align:top;">comment</td><td style="vertical-align:top;">:</td><td><div></div></td></tr><tr><td style="font-weight:bold;vertical-align:top;">domain</td><td style="vertical-align:top;">:</td><td><div></div></td></tr><tr><td style="font-weight:bold;vertical-align:top;">expires</td><td style="vertical-align:top;">:</td><td><div></div></td></tr><tr><td style="font-weight:bold;vertical-align:top;">httponly</td><td style="vertical-align:top;">:</td><td><div></div></td></tr><tr><td style="font-weight:bold;vertical-align:top;">max-age</td><td style="vertical-align:top;">:</td><td><div></div></td></tr><tr><td style="font-weight:bold;vertical-align:top;">path</td><td style="vertical-align:top;">:</td><td><div></div></td></tr><tr><td style="font-weight:bold;vertical-align:top;">secure</td><td style="vertical-align:top;">:</td><td><div></div></td></tr><tr><td style="font-weight:bold;vertical-align:top;">version</td><td style="vertical-align:top;">:</td><td><div></div></td></tr></table></div></td></tr><tr><td style="font-weight:bold;vertical-align:top;">session_id_smscenter</td><td style="vertical-align:top;">:</td><td><div>127.0.0.1-33aa7fa1-4f7a-4083-91de-4dc410638974<table><tr><td style="font-weight:bold;vertical-align:top;">comment</td><td style="vertical-align:top;">:</td><td><div></div></td></tr><tr><td style="font-weight:bold;vertical-align:top;">domain</td><td style="vertical-align:top;">:</td><td><div></div></td></tr><tr><td style="font-weight:bold;vertical-align:top;">expires</td><td style="vertical-align:top;">:</td><td><div></div></td></tr><tr><td style="font-weight:bold;vertical-align:top;">httponly</td><td style="vertical-align:top;">:</td><td><div></div></td></tr><tr><td style="font-weight:bold;vertical-align:top;">max-age</td><td style="vertical-align:top;">:</td><td><div></div></td></tr><tr><td style="font-weight:bold;vertical-align:top;">path</td><td style="vertical-align:top;">:</td><td><div></div></td></tr><tr><td style="font-weight:bold;vertical-align:top;">secure</td><td style="vertical-align:top;">:</td><td><div></div></td></tr><tr><td style="font-weight:bold;vertical-align:top;">version</td><td style="vertical-align:top;">:</td><td><div></div></td></tr></table></div></td></tr><tr><td style="font-weight:bold;vertical-align:top;">session_id_welcome</td><td style="vertical-align:top;">:</td><td><div>127.0.0.1-3f454fb6-9065-420f-be00-fd368e410c16<table><tr><td style="font-weight:bold;vertical-align:top;">comment</td><td style="vertical-align:top;">:</td><td><div></div></td></tr><tr><td style="font-weight:bold;vertical-align:top;">domain</td><td style="vertical-align:top;">:</td><td><div></div></td></tr><tr><td style="font-weight:bold;vertical-align:top;">expires</td><td style="vertical-align:top;">:</td><td><div></div></td></tr><tr><td style="font-weight:bold;vertical-align:top;">httponly</td><td style="vertical-align:top;">:</td><td><div></div></td></tr><tr><td style="font-weight:bold;vertical-align:top;">max-age</td><td style="vertical-align:top;">:</td><td><div></div></td></tr><tr><td style="font-weight:bold;vertical-align:top;">path</td><td style="vertical-align:top;">:</td><td><div></div></td></tr><tr><td style="font-weight:bold;vertical-align:top;">secure</td><td style="vertical-align:top;">:</td><td><div></div></td></tr><tr><td style="font-weight:bold;vertical-align:top;">version</td><td style="vertical-align:top;">:</td><td><div></div></td></tr></table></div></td></tr></table></div></td></tr><tr><td style="font-weight:bold;vertical-align:top;">env</td><td style="vertical-align:top;">:</td><td><div><table><tr><td style="font-weight:bold;vertical-align:top;">HTTP_ACCEPT</td><td style="vertical-align:top;">:</td><td><div>text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8</div></td></tr><tr><td style="font-weight:bold;vertical-align:top;">HTTP_ACCEPT_ENCODING</td><td style="vertical-align:top;">:</td><td><div>gzip, deflate, sdch</div></td></tr><tr><td style="font-weight:bold;vertical-align:top;">HTTP_ACCEPT_LANGUAGE</td><td style="vertical-align:top;">:</td><td><div>es-419,es;q=0.8</div></td></tr><tr><td style="font-weight:bold;vertical-align:top;">HTTP_CONNECTION</td><td style="vertical-align:top;">:</td><td><div>keep-alive</div></td></tr><tr><td style="font-weight:bold;vertical-align:top;">HTTP_COOKIE</td><td style="vertical-align:top;">:</td><td><div>session_id_sms=127.0.0.1-fd00999c-ebe8-4377-ae64-2592babc088a; session_id_welcome=127.0.0.1-3f454fb6-9065-420f-be00-fd368e410c16; session_id_admin=127.0.0.1-00f9bd61-fe13-4879-8c36-144751f15141; session_id_smscenter=127.0.0.1-33aa7fa1-4f7a-4083-91de-4dc410638974</div></td></tr><tr><td style="font-weight:bold;vertical-align:top;">HTTP_HOST</td><td style="vertical-align:top;">:</td><td><div>127.0.0.1:8000</div></td></tr><tr><td style="font-weight:bold;vertical-align:top;">HTTP_REFERER</td><td style="vertical-align:top;">:</td><td><div>http://127.0.0.1:8000/smscenter/default/rlistas</div></td></tr><tr><td style="font-weight:bold;vertical-align:top;">HTTP_UPGRADE_INSECURE_REQUESTS</td><td style="vertical-align:top;">:</td><td><div>1</div></td></tr><tr><td style="font-weight:bold;vertical-align:top;">HTTP_USER_AGENT</td><td style="vertical-align:top;">:</td><td><div>Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/49.0.2623.108 Safari/537.36</div></td></tr><tr><td style="font-weight:bold;vertical-align:top;">PATH_INFO</td><td style="vertical-align:top;">:</td><td><div>/smscenter/default/campain</div></td></tr><tr><td style="font-weight:bold;vertical-align:top;">QUERY_STRING</td><td style="vertical-align:top;">:</td><td><div></div></td></tr><tr><td style="font-weight:bold;vertical-align:top;">REMOTE_ADDR</td><td style="vertical-align:top;">:</td><td><div>127.0.0.1</div></td></tr><tr><td style="font-weight:bold;vertical-align:top;">REMOTE_PORT</td><td style="vertical-align:top;">:</td><td><div>55717</div></td></tr><tr><td style="font-weight:bold;vertical-align:top;">REQUEST_METHOD</td><td style="vertical-align:top;">:</td><td><div>GET</div></td></tr><tr><td style="font-weight:bold;vertical-align:top;">SCRIPT_NAME</td><td style="vertical-align:top;">:</td><td><div></div></td></tr><tr><td style="font-weight:bold;vertical-align:top;">SERVER_NAME</td><td style="vertical-align:top;">:</td><td><div>webapp</div></td></tr><tr><td style="font-weight:bold;vertical-align:top;">SERVER_PORT</td><td style="vertical-align:top;">:</td><td><div>8000</div></td></tr><tr><td style="font-weight:bold;vertical-align:top;">SERVER_PROTOCOL</td><td style="vertical-align:top;">:</td><td><div>HTTP/1.1</div></td></tr><tr><td style="font-weight:bold;vertical-align:top;">SERVER_SOFTWARE</td><td style="vertical-align:top;">:</td><td><div>Rocket 1.2.6</div></td></tr><tr><td style="font-weight:bold;vertical-align:top;">app_folders</td><td style="vertical-align:top;">:</td><td><div>set([&#x27;/home/fvillarroel/web2py/applications/smscenter/&#x27;, &#x27;/home/fvillarroel/web2py/applications/admin/&#x27;, &#x27;/home/fvillarroel/web2py/applications/welcome/&#x27;])</div></td></tr><tr><td style="font-weight:bold;vertical-align:top;">applications_parent</td><td style="vertical-align:top;">:</td><td><div>/home/fvillarroel/web2py</div></td></tr><tr><td style="font-weight:bold;vertical-align:top;">cmd_args</td><td style="vertical-align:top;">:</td><td><div><table></table></div></td></tr><tr><td style="font-weight:bold;vertical-align:top;">cmd_options</td><td style="vertical-align:top;">:</td><td><div>&lt;Values at 0x7fda867ece60: {&#x27;verbose&#x27;: False, &#x27;ip&#x27;: &#x27;127.0.0.1&#x27;, &#x27;debuglevel&#x27;: 30, &#x27;with_scheduler&#x27;: False, &#x27;shutdown_timeout&#x27;: 5, &#x27;taskbar&#x27;: False, &#x27;with_coverage&#x27;: False, &#x27;pid_filename&#x27;: &#x27;httpserver.pid&#x27;, &#x27;maxthreads&#x27;: None, &#x27;softcron&#x27;: False, &#x27;server_name&#x27;: &#x27;webapp&#x27;, &#x27;bpython&#x27;: False, &#x27;nogui&#x27;: False, &#x27;port&#x27;: 8000, &#x27;print_errors&#x27;: False, &#x27;extcron&#x27;: False, &#x27;runcron&#x27;: False, &#x27;run_system_tests&#x27;: False, &#x27;test&#x27;: None, &#x27;folder&#x27;: &#x27;/home/fvillarroel/web2py&#x27;, &#x27;config&#x27;: &#x27;&#x27;, &#x27;minthreads&#x27;: None, &#x27;shell&#x27;: None, &#x27;run&#x27;: &#x27;&#x27;, &#x27;log_filename&#x27;: &#x27;httpserver.log&#x27;, &#x27;profiler_dir&#x27;: None, &#x27;args&#x27;: [&#x27;&#x27;], &#x27;socket_timeout&#x27;: 5, &#x27;ssl_ca_certificate&#x27;: None, &#x27;scheduler&#x27;: None, &#x27;interfaces&#x27;: None, &#x27;ssl_private_key&#x27;: &#x27;&#x27;, &#x27;gae&#x27;: None, &#x27;password&#x27;: &#x27;******&#x27;, &#x27;request_queue_size&#x27;: 5, &#x27;ssl_certificate&#x27;: &#x27;&#x27;, &#x27;cronjob&#x27;: False, &#x27;numthreads&#x27;: None, &#x27;quiet&#x27;: False, &#x27;import_models&#x27;: False, &#x27;timeout&#x27;: 10, &#x27;plain&#x27;: False, &#x27;nobanner&#x27;: False}&gt;</div></td></tr><tr><td style="font-weight:bold;vertical-align:top;">db_sessions</td><td style="vertical-align:top;">:</td><td><div>set([])</div></td></tr><tr><td style="font-weight:bold;vertical-align:top;">debugging</td><td style="vertical-align:top;">:</td><td><div>False</div></td></tr><tr><td style="font-weight:bold;vertical-align:top;">gluon_parent</td><td style="vertical-align:top;">:</td><td><div>/home/fvillarroel/web2py</div></td></tr><tr><td style="font-weight:bold;vertical-align:top;">http_accept</td><td style="vertical-align:top;">:</td><td><div>text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8</div></td></tr><tr><td style="font-weight:bold;vertical-align:top;">http_accept_encoding</td><td style="vertical-align:top;">:</td><td><div>gzip, deflate, sdch</div></td></tr><tr><td style="font-weight:bold;vertical-align:top;">http_accept_language</td><td style="vertical-align:top;">:</td><td><div>es-419,es;q=0.8</div></td></tr><tr><td style="font-weight:bold;vertical-align:top;">http_connection</td><td style="vertical-align:top;">:</td><td><div>keep-alive</div></td></tr><tr><td style="font-weight:bold;vertical-align:top;">http_cookie</td><td style="vertical-align:top;">:</td><td><div>session_id_sms=127.0.0.1-fd00999c-ebe8-4377-ae64-2592babc088a; session_id_welcome=127.0.0.1-3f454fb6-9065-420f-be00-fd368e410c16; session_id_admin=127.0.0.1-00f9bd61-fe13-4879-8c36-144751f15141; session_id_smscenter=127.0.0.1-33aa7fa1-4f7a-4083-91de-4dc410638974</div></td></tr><tr><td style="font-weight:bold;vertical-align:top;">http_host</td><td style="vertical-align:top;">:</td><td><div>127.0.0.1:8000</div></td></tr><tr><td style="font-weight:bold;vertical-align:top;">http_referer</td><td style="vertical-align:top;">:</td><td><div>http://127.0.0.1:8000/smscenter/default/rlistas</div></td></tr><tr><td style="font-weight:bold;vertical-align:top;">http_upgrade_insecure_requests</td><td style="vertical-align:top;">:</td><td><div>1</div></td></tr><tr><td style="font-weight:bold;vertical-align:top;">http_user_agent</td><td style="vertical-align:top;">:</td><td><div>Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/49.0.2623.108 Safari/537.36</div></td></tr><tr><td style="font-weight:bold;vertical-align:top;">is_jython</td><td style="vertical-align:top;">:</td><td><div>False</div></td></tr><tr><td style="font-weight:bold;vertical-align:top;">is_pypy</td><td style="vertical-align:top;">:</td><td><div>False</div></td></tr><tr><td style="font-weight:bold;vertical-align:top;">is_source</td><td style="vertical-align:top;">:</td><td><div>True</div></td></tr><tr><td style="font-weight:bold;vertical-align:top;">local_hosts</td><td style="vertical-align:top;">:</td><td><div><table><tr><td><div>webapp</div></td></tr><tr><td><div>::1</div></td></tr><tr><td><div>127.0.1.1</div></td></tr><tr><td><div>::ffff:127.0.0.1</div></td></tr><tr><td><div>127.0.0.1</div></td></tr></table></div></td></tr><tr><td style="font-weight:bold;vertical-align:top;">path_info</td><td style="vertical-align:top;">:</td><td><div>/smscenter/default/campain</div></td></tr><tr><td style="font-weight:bold;vertical-align:top;">query_string</td><td style="vertical-align:top;">:</td><td><div></div></td></tr><tr><td style="font-weight:bold;vertical-align:top;">remote_addr</td><td style="vertical-align:top;">:</td><td><div>127.0.0.1</div></td></tr><tr><td style="font-weight:bold;vertical-align:top;">remote_port</td><td style="vertical-align:top;">:</td><td><div>55717</div></td></tr><tr><td style="font-weight:bold;vertical-align:top;">request_method</td><td style="vertical-align:top;">:</td><td><div>GET</div></td></tr><tr><td style="font-weight:bold;vertical-align:top;">request_uri</td><td style="vertical-align:top;">:</td><td><div>/smscenter/default/campain</div></td></tr><tr><td style="font-weight:bold;vertical-align:top;">script_name</td><td style="vertical-align:top;">:</td><td><div></div></td></tr><tr><td style="font-weight:bold;vertical-align:top;">server_name</td><td style="vertical-align:top;">:</td><td><div>webapp</div></td></tr><tr><td style="font-weight:bold;vertical-align:top;">server_port</td><td style="vertical-align:top;">:</td><td><div>8000</div></td></tr><tr><td style="font-weight:bold;vertical-align:top;">server_protocol</td><td style="vertical-align:top;">:</td><td><div>HTTP/1.1</div></td></tr><tr><td style="font-weight:bold;vertical-align:top;">server_software</td><td style="vertical-align:top;">:</td><td><div>Rocket 1.2.6</div></td></tr><tr><td style="font-weight:bold;vertical-align:top;">web2py_path</td><td style="vertical-align:top;">:</td><td><div>/home/fvillarroel/web2py</div></td></tr><tr><td style="font-weight:bold;vertical-align:top;">web2py_version</td><td style="vertical-align:top;">:</td><td><div>2.14.3-stable+timestamp.2016.03.26.23.02.02</div></td></tr><tr><td style="font-weight:bold;vertical-align:top;">wsgi.errors</td><td style="vertical-align:top;">:</td><td><div>&lt;open file &#x27;&lt;stderr&gt;&#x27;, mode &#x27;w&#x27; at 0x7fda9019c1e0&gt;</div></td></tr><tr><td style="font-weight:bold;vertical-align:top;">wsgi.file_wrapper</td><td style="vertical-align:top;">:</td><td><div>&lt;class wsgiref.util.FileWrapper at 0x7fda86883e88&gt;</div></td></tr><tr><td style="font-weight:bold;vertical-align:top;">wsgi.input</td><td style="vertical-align:top;">:</td><td><div>&lt;socket._fileobject object at 0x7fda74070dd0&gt;</div></td></tr><tr><td style="font-weight:bold;vertical-align:top;">wsgi.multiprocess</td><td style="vertical-align:top;">:</td><td><div>False</div></td></tr><tr><td style="font-weight:bold;vertical-align:top;">wsgi.multithread</td><td style="vertical-align:top;">:</td><td><div>True</div></td></tr><tr><td style="font-weight:bold;vertical-align:top;">wsgi.run_once</td><td style="vertical-align:top;">:</td><td><div>False</div></td></tr><tr><td style="font-weight:bold;vertical-align:top;">wsgi.url_scheme</td><td style="vertical-align:top;">:</td><td><div>http</div></td></tr><tr><td style="font-weight:bold;vertical-align:top;">wsgi.version</td><td style="vertical-align:top;">:</td><td><div><table><tr><td><div>1</div></td></tr><tr><td><div>0</div></td></tr></table></div></td></tr><tr><td style="font-weight:bold;vertical-align:top;">wsgi_errors</td><td style="vertical-align:top;">:</td><td><div>&lt;open file &#x27;&lt;stderr&gt;&#x27;, mode &#x27;w&#x27; at 0x7fda9019c1e0&gt;</div></td></tr><tr><td style="font-weight:bold;vertical-align:top;">wsgi_file_wrapper</td><td style="vertical-align:top;">:</td><td><div>&lt;class wsgiref.util.FileWrapper at 0x7fda86883e88&gt;</div></td></tr><tr><td style="font-weight:bold;vertical-align:top;">wsgi_input</td><td style="vertical-align:top;">:</td><td><div>&lt;socket._fileobject object at 0x7fda74070dd0&gt;</div></td></tr><tr><td style="font-weight:bold;vertical-align:top;">wsgi_multiprocess</td><td style="vertical-align:top;">:</td><td><div>False</div></td></tr><tr><td style="font-weight:bold;vertical-align:top;">wsgi_multithread</td><td style="vertical-align:top;">:</td><td><div>True</div></td></tr><tr><td style="font-weight:bold;vertical-align:top;">wsgi_run_once</td><td style="vertical-align:top;">:</td><td><div>False</div></td></tr><tr><td style="font-weight:bold;vertical-align:top;">wsgi_url_scheme</td><td style="vertical-align:top;">:</td><td><div>http</div></td></tr><tr><td style="font-weight:bold;vertical-align:top;">wsgi_version</td><td style="vertical-align:top;">:</td><td><div><table><tr><td><div>1</div></td></tr><tr><td><div>0</div></td></tr></table></div></td></tr></table></div></td></tr><tr><td style="font-weight:bold;vertical-align:top;">extension</td><td style="vertical-align:top;">:</td><td><div>html</div></td></tr><tr><td style="font-weight:bold;vertical-align:top;">folder</td><td style="vertical-align:top;">:</td><td><div>/home/fvillarroel/web2py/applications/smscenter/</div></td></tr><tr><td style="font-weight:bold;vertical-align:top;">function</td><td style="vertical-align:top;">:</td><td><div>campain</div></td></tr><tr><td style="font-weight:bold;vertical-align:top;">global_settings</td><td style="vertical-align:top;">:</td><td><div><table><tr><td style="font-weight:bold;vertical-align:top;">app_folders</td><td style="vertical-align:top;">:</td><td><div>set([&#x27;/home/fvillarroel/web2py/applications/smscenter/&#x27;, &#x27;/home/fvillarroel/web2py/applications/admin/&#x27;, &#x27;/home/fvillarroel/web2py/applications/welcome/&#x27;])</div></td></tr><tr><td style="font-weight:bold;vertical-align:top;">applications_parent</td><td style="vertical-align:top;">:</td><td><div>/home/fvillarroel/web2py</div></td></tr><tr><td style="font-weight:bold;vertical-align:top;">cmd_args</td><td style="vertical-align:top;">:</td><td><div><table></table></div></td></tr><tr><td style="font-weight:bold;vertical-align:top;">cmd_options</td><td style="vertical-align:top;">:</td><td><div>&lt;Values at 0x7fda867ece60: {&#x27;verbose&#x27;: False, &#x27;ip&#x27;: &#x27;127.0.0.1&#x27;, &#x27;debuglevel&#x27;: 30, &#x27;with_scheduler&#x27;: False, &#x27;shutdown_timeout&#x27;: 5, &#x27;taskbar&#x27;: False, &#x27;with_coverage&#x27;: False, &#x27;pid_filename&#x27;: &#x27;httpserver.pid&#x27;, &#x27;maxthreads&#x27;: None, &#x27;softcron&#x27;: False, &#x27;server_name&#x27;: &#x27;webapp&#x27;, &#x27;bpython&#x27;: False, &#x27;nogui&#x27;: False, &#x27;port&#x27;: 8000, &#x27;print_errors&#x27;: False, &#x27;extcron&#x27;: False, &#x27;runcron&#x27;: False, &#x27;run_system_tests&#x27;: False, &#x27;test&#x27;: None, &#x27;folder&#x27;: &#x27;/home/fvillarroel/web2py&#x27;, &#x27;config&#x27;: &#x27;&#x27;, &#x27;minthreads&#x27;: None, &#x27;shell&#x27;: None, &#x27;run&#x27;: &#x27;&#x27;, &#x27;log_filename&#x27;: &#x27;httpserver.log&#x27;, &#x27;profiler_dir&#x27;: None, &#x27;args&#x27;: [&#x27;&#x27;], &#x27;socket_timeout&#x27;: 5, &#x27;ssl_ca_certificate&#x27;: None, &#x27;scheduler&#x27;: None, &#x27;interfaces&#x27;: None, &#x27;ssl_private_key&#x27;: &#x27;&#x27;, &#x27;gae&#x27;: None, &#x27;password&#x27;: &#x27;******&#x27;, &#x27;request_queue_size&#x27;: 5, &#x27;ssl_certificate&#x27;: &#x27;&#x27;, &#x27;cronjob&#x27;: False, &#x27;numthreads&#x27;: None, &#x27;quiet&#x27;: False, &#x27;import_models&#x27;: False, &#x27;timeout&#x27;: 10, &#x27;plain&#x27;: False, &#x27;nobanner&#x27;: False}&gt;</div></td></tr><tr><td style="font-weight:bold;vertical-align:top;">db_sessions</td><td style="vertical-align:top;">:</td><td><div>set([])</div></td></tr><tr><td style="font-weight:bold;vertical-align:top;">debugging</td><td style="vertical-align:top;">:</td><td><div>False</div></td></tr><tr><td style="font-weight:bold;vertical-align:top;">gluon_parent</td><td style="vertical-align:top;">:</td><td><div>/home/fvillarroel/web2py</div></td></tr><tr><td style="font-weight:bold;vertical-align:top;">is_jython</td><td style="vertical-align:top;">:</td><td><div>False</div></td></tr><tr><td style="font-weight:bold;vertical-align:top;">is_pypy</td><td style="vertical-align:top;">:</td><td><div>False</div></td></tr><tr><td style="font-weight:bold;vertical-align:top;">is_source</td><td style="vertical-align:top;">:</td><td><div>True</div></td></tr><tr><td style="font-weight:bold;vertical-align:top;">local_hosts</td><td style="vertical-align:top;">:</td><td><div><table><tr><td><div>webapp</div></td></tr><tr><td><div>::1</div></td></tr><tr><td><div>127.0.1.1</div></td></tr><tr><td><div>::ffff:127.0.0.1</div></td></tr><tr><td><div>127.0.0.1</div></td></tr></table></div></td></tr><tr><td style="font-weight:bold;vertical-align:top;">web2py_version</td><td style="vertical-align:top;">:</td><td><div>2.14.3-stable+timestamp.2016.03.26.23.02.02</div></td></tr></table></div></td></tr><tr><td style="font-weight:bold;vertical-align:top;">is_https</td><td style="vertical-align:top;">:</td><td><div>False</div></td></tr><tr><td style="font-weight:bold;vertical-align:top;">is_local</td><td style="vertical-align:top;">:</td><td><div>True</div></td></tr><tr><td style="font-weight:bold;vertical-align:top;">is_restful</td><td style="vertical-align:top;">:</td><td><div>False</div></td></tr><tr><td style="font-weight:bold;vertical-align:top;">is_scheduler</td><td style="vertical-align:top;">:</td><td><div>False</div></td></tr><tr><td style="font-weight:bold;vertical-align:top;">is_shell</td><td style="vertical-align:top;">:</td><td><div>False</div></td></tr><tr><td style="font-weight:bold;vertical-align:top;">now</td><td style="vertical-align:top;">:</td><td><div>datetime.datetime(2016, 5, 24, 23, 26, 53, 89753)</div></td></tr><tr><td style="font-weight:bold;vertical-align:top;">raw_args</td><td style="vertical-align:top;">:</td><td><div></div></td></tr><tr><td style="font-weight:bold;vertical-align:top;">raw_extension</td><td style="vertical-align:top;">:</td><td><div>None</div></td></tr><tr><td style="font-weight:bold;vertical-align:top;">url</td><td style="vertical-align:top;">:</td><td><div>/smscenter/default/campain</div></td></tr><tr><td style="font-weight:bold;vertical-align:top;">utcnow</td><td style="vertical-align:top;">:</td><td><div>datetime.datetime(2016, 5, 25, 2, 26, 53, 89775)</div></td></tr><tr><td style="font-weight:bold;vertical-align:top;">wsgi</td><td style="vertical-align:top;">:</td><td><div>&lt;gluon.main.LazyWSGI object at 0x7fda74124590&gt;</div></td></tr></table></div>'
+tRp70
+sS'frames'
+p71
+(lp72
+(dp73
+S'file'
+p74
+S'/home/fvillarroel/web2py/gluon/restricted.py'
+p75
+sS'dump'
+p76
+(dp77
+S'environment'
+p78
+S"{'A': <class 'gluon.html.A'>, 'ANY_OF': <class 'gluon.validators.ANY_OF'>, 'ASSIGNJS': <function ASSIGNJS>, 'AppConfig': <function AppConfig>, 'Auth': <class 'gluon.tools.Auth'>, 'B': <class 'gluon.html.B'>, 'BEAUTIFY': <class 'gluon.html.BEAUTIFY'>, 'BODY': <class 'gluon.html.BODY'>, 'BR': <class 'gluon.html.BR'>, 'BUTTON': <class 'gluon.html.BUTTON'>, ...}"
+p79
+sS'ccode'
+p80
+S'<code object <module> at 0x7fda740d7830, file "/...tions/smscenter/controllers/default.py", line 11>'
+p81
+ssS'lnum'
+p82
+I227
+sS'lines'
+p83
+(dp84
+I224
+S'            ccode = code'
+p85
+sI225
+S'        else:'
+p86
+sI226
+S'            ccode = compile2(code, layer)'
+p87
+sI227
+S'        exec ccode in environment'
+p88
+sI228
+S'    except HTTP:'
+p89
+sI229
+S'        raise'
+p90
+sI230
+S'    except RestrictedError:'
+p91
+sI231
+S'        # do not encapsulate (obfuscate) the original RestrictedError'
+p92
+sI222
+S'    try:'
+p93
+sI223
+S'        if isinstance(code, types.CodeType):'
+p94
+ssS'call'
+p95
+S'(code="# -*- coding: utf-8 -*-\\n# this file is released ...\'rb\'))\\n\\nresponse._vars=response._caller(campain)\\n", environment={\'A\': <class \'gluon.html.A\'>, \'ANY_OF\': <class \'gluon.validators.ANY_OF\'>, \'ASSIGNJS\': <function ASSIGNJS>, \'AppConfig\': <function AppConfig>, \'Auth\': <class \'gluon.tools.Auth\'>, \'B\': <class \'gluon.html.B\'>, \'BEAUTIFY\': <class \'gluon.html.BEAUTIFY\'>, \'BODY\': <class \'gluon.html.BODY\'>, \'BR\': <class \'gluon.html.BR\'>, \'BUTTON\': <class \'gluon.html.BUTTON\'>, ...}, layer=\'/home/fvillarroel/web2py/applications/smscenter/controllers/default.py\')'
+p96
+sS'func'
+p97
+S'restricted'
+p98
+sa(dp99
+g74
+S'/home/fvillarroel/web2py/applications/smscenter/controllers/default.py'
+p100
+sg76
+(dp101
+sg82
+I285
+sg83
+(dp102
+I274
+S"    dest_file = open(pathfilename, 'wb')"
+p103
+sI275
+S'    try:'
+p104
+sI276
+S'        shutil.copyfileobj(file, dest_file)'
+p105
+sI277
+S'    finally:'
+p106
+sI278
+S'        dest_file.close()'
+p107
+sI279
+S'    return filename'
+p108
+sI280
+S''
+sI281
+S'def retrieve_file(filename, path=None):'
+p109
+sI282
+S'    path = "uploads/"'
+p110
+sI283
+S"    return (filename, open(os.path.join(path, filename), 'rb'))"
+p111
+ssg95
+S'()'
+p112
+sg97
+S'<module>'
+p113
+sa(dp114
+g74
+S'/home/fvillarroel/web2py/gluon/globals.py'
+p115
+sg76
+(dp116
+S'self'
+p117
+S'undefined'
+p118
+sS'f'
+S'<function campain>'
+p119
+ssg82
+I417
+sg83
+(dp120
+I416
+S'        self._vars = None'
+p121
+sI417
+S'        self._caller = lambda f: f()'
+p122
+sI418
+S'        self._view_environment = None'
+p123
+sI419
+S'        self._custom_commit = None'
+p124
+sI420
+S'        self._custom_rollback = None'
+p125
+sI421
+S"        self.generic_patterns = ['*']"
+p126
+sI412
+S"        self.flash = ''            # used by the default view layout"
+p127
+sI413
+S'        self.meta = Storage()      # used by web2py_ajax.html'
+p128
+sI414
+S'        self.menu = []             # used by the default view layout'
+p129
+sI415
+S'        self.files = []            # used by web2py_ajax.html'
+p130
+ssg95
+S'(f=<function campain>)'
+p131
+sg97
+S'<lambda>'
+p132
+sa(dp133
+g74
+S'/home/fvillarroel/web2py/gluon/tools.py'
+p134
+sg76
+(dp135
+S'action'
+p136
+S'<function campain>'
+p137
+sS'a'
+S'()'
+p138
+sS'b'
+g21
+ssg82
+I4250
+sg83
+(dp139
+I4245
+S'                    flag = condition'
+p140
+sI4246
+S'                if not flag:'
+p141
+sI4247
+S'                    current.session.flash = self.messages.access_denied'
+p142
+sI4248
+S'                    return call_or_redirect('
+p143
+sI4249
+S'                        self.settings.on_failed_authorization)'
+p144
+sI4250
+S'                return action(*a, **b)'
+p145
+sI4251
+S'            f.__doc__ = action.__doc__'
+p146
+sI4252
+S'            f.__name__ = action.__name__'
+p147
+sI4253
+S'            f.__dict__.update(action.__dict__)'
+p148
+sI4254
+S'            return f'
+p149
+ssg95
+S'(*a=(), **b={})'
+p150
+sg97
+S'f'
+sa(dp151
+g74
+S'/home/fvillarroel/web2py/applications/smscenter/controllers/default.py'
+p152
+sg76
+(dp153
+S'by'
+p154
+g118
+sS'auth.user'
+p155
+S"<Row {'first_name': 'fernando', 'last_name': Non...: None, 'telefono': None, 'id': 1L, 'rut': None}>"
+p156
+sS'auth.user.id'
+p157
+S'1L'
+p158
+sS'global auth'
+p159
+S'<gluon.tools.Auth object>'
+p160
+sS'builtinid'
+p161
+S'<built-in function id>'
+p162
+sS'order'
+p163
+g118
+sS'desc'
+p164
+g118
+ssg82
+I170
+sg83
+(dp165
+I165
+S'                                join contactos on lista.id=contactos.id_lista \\'
+p166
+sI166
+S'                                join estadosms on estadosms.id=contactos.estado  \\'
+p167
+sI167
+S'                                where campain.id_clte=%s and estadosms.id=5) \\'
+p168
+sI168
+S'                            from campain    \\'
+p169
+sI169
+S'                            where id_clte=%s    \\'
+p170
+sI170
+S"                            order by id desc' % (auth.user.id,auth.user.id,auth.user.id,auth.user.id,auth.user.id,auth.user.id,auth.user.id))"
+p171
+sI171
+S''
+sI172
+S'    return dict(rws=rws)'
+p172
+sI173
+S''
+sI174
+S''
+ssg95
+S'()'
+p173
+sg97
+S'campain'
+p174
+sa(dp175
+g74
+S'/home/fvillarroel/web2py/gluon/packages/dal/pydal/base.py'
+p176
+sg76
+(dp177
+S'query'
+p178
+S"'select id,nombre,fecha,estado,                  ...1                                order by id desc'"
+p179
+sS'adapter'
+p180
+S'<pydal.adapters.postgres.PostgreSQLAdapter object>'
+p181
+sS'adapter.execute'
+p182
+S'<bound method PostgreSQLAdapter.execute of <pydal.adapters.postgres.PostgreSQLAdapter object>>'
+p183
+ssg82
+I1019
+sg83
+(dp184
+I1014
+S'        """'
+p185
+sI1015
+S'        adapter = self._adapter'
+p186
+sI1016
+S'        if placeholders:'
+p187
+sI1017
+S'            adapter.execute(query, placeholders)'
+p188
+sI1018
+S'        else:'
+p189
+sI1019
+S'            adapter.execute(query)'
+p190
+sI1020
+S'        if as_dict or as_ordered_dict:'
+p191
+sI1021
+S"            if not hasattr(adapter.cursor,'description'):"
+p192
+sI1022
+S'                raise RuntimeError("database does not support executesql(...,as_dict=True)")'
+p193
+sI1023
+S'            # Non-DAL legacy db query, converts cursor results to dict.'
+p194
+ssg95
+S'(self=<DAL uri="postgres:******@127.0.0.1:5432/sms">, query=\'select id,nombre,fecha,estado,                  ...1                                order by id desc\', placeholders=None, as_dict=False, fields=None, colnames=None, as_ordered_dict=False)'
+p195
+sg97
+S'executesql'
+p196
+sa(dp197
+g74
+S'/home/fvillarroel/web2py/gluon/packages/dal/pydal/adapters/postgres.py'
+p198
+sg76
+(dp199
+S'a'
+S"('select id,nombre,fecha,estado,                  ...1                                order by id desc',)"
+p200
+sS'self'
+p201
+S'<pydal.adapters.postgres.PostgreSQLAdapter object>'
+p202
+sS'b'
+g21
+sS'BaseAdapter.execute'
+p203
+S'<unbound method BaseAdapter.execute>'
+p204
+sS'global BaseAdapter'
+p205
+S"<class 'pydal.adapters.base.BaseAdapter'>"
+p206
+ssg82
+I362
+sg83
+(dp207
+I357
+S''
+sI358
+S'    def execute(self, *a, **b):'
+p208
+sI359
+S'        if PY2 and self.driver_name == "pg8000":'
+p209
+sI360
+S'            a = list(a)'
+p210
+sI361
+S"            a[0] = a[0].decode('utf8')"
+p211
+sI362
+S'        return BaseAdapter.execute(self, *a, **b)'
+p212
+sI363
+S''
+sI364
+S''
+sI365
+S'class NewPostgreSQLAdapter(PostgreSQLAdapter):'
+p213
+sI366
+S"    drivers = ('psycopg2','pg8000')"
+p214
+ssg95
+S"(self=<pydal.adapters.postgres.PostgreSQLAdapter object>, *a=('select id,nombre,fecha,estado,                  ...1                                order by id desc',), **b={})"
+p215
+sg97
+S'execute'
+p216
+sa(dp217
+g74
+S'/home/fvillarroel/web2py/gluon/packages/dal/pydal/adapters/base.py'
+p218
+sg76
+(dp219
+S'a'
+S"('select id,nombre,fecha,estado,                  ...1                                order by id desc',)"
+p220
+sS'self'
+p221
+S'<pydal.adapters.postgres.PostgreSQLAdapter object>'
+p222
+sS'b'
+g21
+sS'self.log_execute'
+p223
+S'<bound method PostgreSQLAdapter.log_execute of <pydal.adapters.postgres.PostgreSQLAdapter object>>'
+p224
+ssg82
+I1388
+sg83
+(dp225
+I1383
+S'        self.db._timings.append((command,time.time()-t0))'
+p226
+sI1384
+S'        del self.db._timings[:-TIMINGSSIZE]'
+p227
+sI1385
+S'        return ret'
+p228
+sI1386
+S''
+sI1387
+S'    def execute(self, *a, **b):'
+p229
+sI1388
+S'        return self.log_execute(*a, **b)'
+p230
+sI1389
+S''
+sI1390
+S'    def execute_test_query(self):'
+p231
+sI1391
+S'        return self.execute(self.test_query)'
+p232
+sI1392
+S''
+ssg95
+S"(self=<pydal.adapters.postgres.PostgreSQLAdapter object>, *a=('select id,nombre,fecha,estado,                  ...1                                order by id desc',), **b={})"
+p233
+sg97
+g216
+sa(dp234
+g74
+S'/home/fvillarroel/web2py/gluon/packages/dal/pydal/adapters/base.py'
+p235
+sg76
+(dp236
+S'a'
+S"('select id,nombre,fecha,estado,                  ...1                                order by id desc',)"
+p237
+sS'b'
+g21
+sS'self'
+p238
+S'<pydal.adapters.postgres.PostgreSQLAdapter object>'
+p239
+sS'ret'
+p240
+g118
+sS'command'
+p241
+S"'select id,nombre,fecha,estado,                  ...1                                order by id desc'"
+p242
+sS'self.get_cursor'
+p243
+S'<bound method PostgreSQLAdapter.get_cursor of <pydal.adapters.postgres.PostgreSQLAdapter object>>'
+p244
+sS').execute'
+p245
+g118
+ssg82
+I1382
+sg83
+(dp246
+I1377
+S'            command = self.filter_sql_command(command)'
+p247
+sI1378
+S'        if self.db._debug:'
+p248
+sI1379
+S"            self.db.logger.debug('SQL: %s' % command)"
+p249
+sI1380
+S'        self.db._lastsql = command'
+p250
+sI1381
+S'        t0 = time.time()'
+p251
+sI1382
+S'        ret = self.get_cursor().execute(command, *a[1:], **b)'
+p252
+sI1383
+S'        self.db._timings.append((command,time.time()-t0))'
+p253
+sI1384
+S'        del self.db._timings[:-TIMINGSSIZE]'
+p254
+sI1385
+S'        return ret'
+p255
+sI1386
+S''
+ssg95
+S"(self=<pydal.adapters.postgres.PostgreSQLAdapter object>, *a=('select id,nombre,fecha,estado,                  ...1                                order by id desc',), **b={})"
+p256
+sg97
+S'log_execute'
+p257
+sasS'pyver'
+p258
+S'Python 2.7.9: /usr/bin/python (prefix: /usr)'
+p259
+sS'session'
+p260
+g69
+(S's\x10\x0c\x00\x00<div><table><tr><td style="font-weight:bold;vertical-align:top;">auth</td><td style="vertical-align:top;">:</td><td><div><table><tr><td style="font-weight:bold;vertical-align:top;">expiration</td><td style="vertical-align:top;">:</td><td><div>3600</div></td></tr><tr><td style="font-weight:bold;vertical-align:top;">hmac_key</td><td style="vertical-align:top;">:</td><td><div>8a2259cd-c92f-4ebb-89a9-d9fe14fae264</div></td></tr><tr><td style="font-weight:bold;vertical-align:top;">last_visit</td><td style="vertical-align:top;">:</td><td><div>datetime.datetime(2016, 5, 24, 23, 21, 3, 470636)</div></td></tr><tr><td style="font-weight:bold;vertical-align:top;">remember_me</td><td style="vertical-align:top;">:</td><td><div>False</div></td></tr><tr><td style="font-weight:bold;vertical-align:top;">user</td><td style="vertical-align:top;">:</td><td><div><table><tr><td style="font-weight:bold;vertical-align:top;">direccion</td><td style="vertical-align:top;">:</td><td><div>None</div></td></tr><tr><td style="font-weight:bold;vertical-align:top;">email</td><td style="vertical-align:top;">:</td><td><div>fenavillarroel@gmail.com</div></td></tr><tr><td style="font-weight:bold;vertical-align:top;">first_name</td><td style="vertical-align:top;">:</td><td><div>fernando</div></td></tr><tr><td style="font-weight:bold;vertical-align:top;">giro</td><td style="vertical-align:top;">:</td><td><div>None</div></td></tr><tr><td style="font-weight:bold;vertical-align:top;">id</td><td style="vertical-align:top;">:</td><td><div>1L</div></td></tr><tr><td style="font-weight:bold;vertical-align:top;">last_name</td><td style="vertical-align:top;">:</td><td><div>None</div></td></tr><tr><td style="font-weight:bold;vertical-align:top;">nombres</td><td style="vertical-align:top;">:</td><td><div>None</div></td></tr><tr><td style="font-weight:bold;vertical-align:top;">prepago</td><td style="vertical-align:top;">:</td><td><div>True</div></td></tr><tr><td style="font-weight:bold;vertical-align:top;">registration_id</td><td style="vertical-align:top;">:</td><td><div>None</div></td></tr><tr><td style="font-weight:bold;vertical-align:top;">registration_key</td><td style="vertical-align:top;">:</td><td><div>None</div></td></tr><tr><td style="font-weight:bold;vertical-align:top;">reset_password_key</td><td style="vertical-align:top;">:</td><td><div>None</div></td></tr><tr><td style="font-weight:bold;vertical-align:top;">rut</td><td style="vertical-align:top;">:</td><td><div>None</div></td></tr><tr><td style="font-weight:bold;vertical-align:top;">saldo</td><td style="vertical-align:top;">:</td><td><div>0L</div></td></tr><tr><td style="font-weight:bold;vertical-align:top;">telefono</td><td style="vertical-align:top;">:</td><td><div>None</div></td></tr></table></div></td></tr><tr><td style="font-weight:bold;vertical-align:top;">user_groups</td><td style="vertical-align:top;">:</td><td><div><table></table></div></td></tr></table></div></td></tr><tr><td style="font-weight:bold;vertical-align:top;">flash</td><td style="vertical-align:top;">:</td><td><div>None</div></td></tr></table></div>'
+tRp261
+sS'etype'
+p262
+S"<class 'psycopg2.ProgrammingError'>"
+p263
+sS'date'
+p264
+S'Tue May 24 23:26:53 2016'
+p265
+sS'response'
+p266
+g69
+(S's\xeb?\x00\x00<div><table><tr><td style="font-weight:bold;vertical-align:top;">body</td><td style="vertical-align:top;">:</td><td><div>&lt;cStringIO.StringO object at 0x7fda5e0171b8&gt;</div></td></tr><tr><td style="font-weight:bold;vertical-align:top;">cookies</td><td style="vertical-align:top;">:</td><td><div><table><tr><td style="font-weight:bold;vertical-align:top;">session_id_smscenter</td><td style="vertical-align:top;">:</td><td><div>127.0.0.1-33aa7fa1-4f7a-4083-91de-4dc410638974<table><tr><td style="font-weight:bold;vertical-align:top;">comment</td><td style="vertical-align:top;">:</td><td><div></div></td></tr><tr><td style="font-weight:bold;vertical-align:top;">domain</td><td style="vertical-align:top;">:</td><td><div></div></td></tr><tr><td style="font-weight:bold;vertical-align:top;">expires</td><td style="vertical-align:top;">:</td><td><div></div></td></tr><tr><td style="font-weight:bold;vertical-align:top;">httponly</td><td style="vertical-align:top;">:</td><td><div></div></td></tr><tr><td style="font-weight:bold;vertical-align:top;">max-age</td><td style="vertical-align:top;">:</td><td><div></div></td></tr><tr><td style="font-weight:bold;vertical-align:top;">path</td><td style="vertical-align:top;">:</td><td><div>/</div></td></tr><tr><td style="font-weight:bold;vertical-align:top;">secure</td><td style="vertical-align:top;">:</td><td><div></div></td></tr><tr><td style="font-weight:bold;vertical-align:top;">version</td><td style="vertical-align:top;">:</td><td><div></div></td></tr></table></div></td></tr></table></div></td></tr><tr><td style="font-weight:bold;vertical-align:top;">delimiters</td><td style="vertical-align:top;">:</td><td><div><table><tr><td><div>{{</div></td></tr><tr><td><div>}}</div></td></tr></table></div></td></tr><tr><td style="font-weight:bold;vertical-align:top;">files</td><td style="vertical-align:top;">:</td><td><div><table></table></div></td></tr><tr><td style="font-weight:bold;vertical-align:top;">flash</td><td style="vertical-align:top;">:</td><td><div></div></td></tr><tr><td style="font-weight:bold;vertical-align:top;">form_label_separator</td><td style="vertical-align:top;">:</td><td><div></div></td></tr><tr><td style="font-weight:bold;vertical-align:top;">formstyle</td><td style="vertical-align:top;">:</td><td><div>bootstrap3_inline</div></td></tr><tr><td style="font-weight:bold;vertical-align:top;">generic_patterns</td><td style="vertical-align:top;">:</td><td><div><table><tr><td><div>*</div></td></tr></table></div></td></tr><tr><td style="font-weight:bold;vertical-align:top;">google_analytics_id</td><td style="vertical-align:top;">:</td><td><div>None</div></td></tr><tr><td style="font-weight:bold;vertical-align:top;">headers</td><td style="vertical-align:top;">:</td><td><div><table><tr><td style="font-weight:bold;vertical-align:top;">X-Powered-By</td><td style="vertical-align:top;">:</td><td><div>web2py</div></td></tr></table></div></td></tr><tr><td style="font-weight:bold;vertical-align:top;">logo</td><td style="vertical-align:top;">:</td><td><div><a class="navbar-brand" href="http://www.web2py.com/" id="web2py-logo"><b>web<span>2</span>py</b>&trade;&nbsp;</a></div></td></tr><tr><td style="font-weight:bold;vertical-align:top;">menu</td><td style="vertical-align:top;">:</td><td><div><table><tr><td><div><table><tr><td><div>Inicio</div></td></tr><tr><td><div>False</div></td></tr><tr><td><div>/smscenter/default/index</div></td></tr><tr><td><div><table></table></div></td></tr></table></div></td></tr><tr><td><div><table><tr><td><div>Mis Sitios</div></td></tr><tr><td><div>False</div></td></tr><tr><td><div>/admin/default/site</div></td></tr></table></div></td></tr><tr><td><div><table><tr><td><div>Esta Aplicaci\xc3\xb3n</div></td></tr><tr><td><div>False</div></td></tr><tr><td><div>#</div></td></tr><tr><td><div><table><tr><td><div><table><tr><td><div>Design</div></td></tr><tr><td><div>False</div></td></tr><tr><td><div>/admin/default/design/smscenter</div></td></tr></table></div></td></tr><tr><td><div><li class="divider"></li></div></td></tr><tr><td><div><table><tr><td><div>Controlador</div></td></tr><tr><td><div>False</div></td></tr><tr><td><div>/admin/default/edit/smscenter/controllers/default.py</div></td></tr></table></div></td></tr><tr><td><div><table><tr><td><div>Vista</div></td></tr><tr><td><div>False</div></td></tr><tr><td><div>/admin/default/edit/smscenter/views/default/campain.html</div></td></tr></table></div></td></tr><tr><td><div><table><tr><td><div>Modelo BDD</div></td></tr><tr><td><div>False</div></td></tr><tr><td><div>/admin/default/edit/smscenter/models/db.py</div></td></tr></table></div></td></tr><tr><td><div><table><tr><td><div>Modelo "menu"</div></td></tr><tr><td><div>False</div></td></tr><tr><td><div>/admin/default/edit/smscenter/models/menu.py</div></td></tr></table></div></td></tr><tr><td><div><table><tr><td><div>Config.ini</div></td></tr><tr><td><div>False</div></td></tr><tr><td><div>/admin/default/edit/smscenter/private/appconfig.ini</div></td></tr></table></div></td></tr><tr><td><div><table><tr><td><div>Dise\xc3\xb1o de p\xc3\xa1gina</div></td></tr><tr><td><div>False</div></td></tr><tr><td><div>/admin/default/edit/smscenter/views/layout.html</div></td></tr></table></div></td></tr><tr><td><div><table><tr><td><div>Hoja de estilo</div></td></tr><tr><td><div>False</div></td></tr><tr><td><div>/admin/default/edit/smscenter/static/css/web2py-bootstrap3.css</div></td></tr></table></div></td></tr><tr><td><div><table><tr><td><div>Base de datos</div></td></tr><tr><td><div>False</div></td></tr><tr><td><div>/smscenter/appadmin/index</div></td></tr></table></div></td></tr><tr><td><div><table><tr><td><div>Errores</div></td></tr><tr><td><div>False</div></td></tr><tr><td><div>/admin/default/errors/smscenter</div></td></tr></table></div></td></tr><tr><td><div><table><tr><td><div>Acerca de</div></td></tr><tr><td><div>False</div></td></tr><tr><td><div>/admin/default/about/smscenter</div></td></tr></table></div></td></tr></table></div></td></tr></table></div></td></tr><tr><td><div><table><tr><td><div>web2py.com</div></td></tr><tr><td><div>False</div></td></tr><tr><td><div>#</div></td></tr><tr><td><div><table><tr><td><div><table><tr><td><div>Descargas</div></td></tr><tr><td><div>False</div></td></tr><tr><td><div>http://www.web2py.com/examples/default/download</div></td></tr></table></div></td></tr><tr><td><div><table><tr><td><div>Soporte</div></td></tr><tr><td><div>False</div></td></tr><tr><td><div>http://www.web2py.com/examples/default/support</div></td></tr></table></div></td></tr><tr><td><div><table><tr><td><div>Demostraci\xc3\xb3n</div></td></tr><tr><td><div>False</div></td></tr><tr><td><div>http://web2py.com/demo_admin</div></td></tr></table></div></td></tr><tr><td><div><table><tr><td><div>Ejemplos R\xc3\xa1pidos</div></td></tr><tr><td><div>False</div></td></tr><tr><td><div>http://web2py.com/examples/default/examples</div></td></tr></table></div></td></tr><tr><td><div><table><tr><td><div>FAQ</div></td></tr><tr><td><div>False</div></td></tr><tr><td><div>http://web2py.com/AlterEgo</div></td></tr></table></div></td></tr><tr><td><div><table><tr><td><div>V\xc3\xaddeos</div></td></tr><tr><td><div>False</div></td></tr><tr><td><div>http://www.web2py.com/examples/default/videos/</div></td></tr></table></div></td></tr><tr><td><div><table><tr><td><div>Aplicaciones Libres</div></td></tr><tr><td><div>False</div></td></tr><tr><td><div>http://web2py.com/appliances</div></td></tr></table></div></td></tr><tr><td><div><table><tr><td><div>Plugins</div></td></tr><tr><td><div>False</div></td></tr><tr><td><div>http://web2py.com/plugins</div></td></tr></table></div></td></tr><tr><td><div><table><tr><td><div>Recetas</div></td></tr><tr><td><div>False</div></td></tr><tr><td><div>http://web2pyslices.com/</div></td></tr></table></div></td></tr></table></div></td></tr></table></div></td></tr><tr><td><div><table><tr><td><div>Documentaci\xc3\xb3n</div></td></tr><tr><td><div>False</div></td></tr><tr><td><div>#</div></td></tr><tr><td><div><table><tr><td><div><table><tr><td><div>Online book</div></td></tr><tr><td><div>False</div></td></tr><tr><td><div>http://www.web2py.com/book</div></td></tr></table></div></td></tr><tr><td><div><li class="divider"></li></div></td></tr><tr><td><div><table><tr><td><div>Prefacio</div></td></tr><tr><td><div>False</div></td></tr><tr><td><div>http://www.web2py.com/book/default/chapter/00</div></td></tr></table></div></td></tr><tr><td><div><table><tr><td><div>Introducci\xc3\xb3n</div></td></tr><tr><td><div>False</div></td></tr><tr><td><div>http://www.web2py.com/book/default/chapter/01</div></td></tr></table></div></td></tr><tr><td><div><table><tr><td><div>Python</div></td></tr><tr><td><div>False</div></td></tr><tr><td><div>http://www.web2py.com/book/default/chapter/02</div></td></tr></table></div></td></tr><tr><td><div><table><tr><td><div>Resumen</div></td></tr><tr><td><div>False</div></td></tr><tr><td><div>http://www.web2py.com/book/default/chapter/03</div></td></tr></table></div></td></tr><tr><td><div><table><tr><td><div>El N\xc3\xbacleo</div></td></tr><tr><td><div>False</div></td></tr><tr><td><div>http://www.web2py.com/book/default/chapter/04</div></td></tr></table></div></td></tr><tr><td><div><table><tr><td><div>Las Vistas</div></td></tr><tr><td><div>False</div></td></tr><tr><td><div>http://www.web2py.com/book/default/chapter/05</div></td></tr></table></div></td></tr><tr><td><div><table><tr><td><div>Base de datos</div></td></tr><tr><td><div>False</div></td></tr><tr><td><div>http://www.web2py.com/book/default/chapter/06</div></td></tr></table></div></td></tr><tr><td><div><table><tr><td><div>Formularios y validadores</div></td></tr><tr><td><div>False</div></td></tr><tr><td><div>http://www.web2py.com/book/default/chapter/07</div></td></tr></table></div></td></tr><tr><td><div><table><tr><td><div>Correo electr\xc3\xb3nico y SMS</div></td></tr><tr><td><div>False</div></td></tr><tr><td><div>http://www.web2py.com/book/default/chapter/08</div></td></tr></table></div></td></tr><tr><td><div><table><tr><td><div>Control de Acceso</div></td></tr><tr><td><div>False</div></td></tr><tr><td><div>http://www.web2py.com/book/default/chapter/09</div></td></tr></table></div></td></tr><tr><td><div><table><tr><td><div>Servicios</div></td></tr><tr><td><div>False</div></td></tr><tr><td><div>http://www.web2py.com/book/default/chapter/10</div></td></tr></table></div></td></tr><tr><td><div><table><tr><td><div>Recetas AJAX</div></td></tr><tr><td><div>False</div></td></tr><tr><td><div>http://www.web2py.com/book/default/chapter/11</div></td></tr></table></div></td></tr><tr><td><div><table><tr><td><div>Componentes y Plugins</div></td></tr><tr><td><div>False</div></td></tr><tr><td><div>http://www.web2py.com/book/default/chapter/12</div></td></tr></table></div></td></tr><tr><td><div><table><tr><td><div>Recetas de despliegue</div></td></tr><tr><td><div>False</div></td></tr><tr><td><div>http://www.web2py.com/book/default/chapter/13</div></td></tr></table></div></td></tr><tr><td><div><table><tr><td><div>Otras Recetas</div></td></tr><tr><td><div>False</div></td></tr><tr><td><div>http://www.web2py.com/book/default/chapter/14</div></td></tr></table></div></td></tr><tr><td><div><table><tr><td><div>Helping web2py</div></td></tr><tr><td><div>False</div></td></tr><tr><td><div>http://www.web2py.com/book/default/chapter/15</div></td></tr></table></div></td></tr><tr><td><div><table><tr><td><div>Buy web2py\'s book</div></td></tr><tr><td><div>False</div></td></tr><tr><td><div>http://stores.lulu.com/web2py</div></td></tr></table></div></td></tr></table></div></td></tr></table></div></td></tr><tr><td><div><table><tr><td><div>Comunidad</div></td></tr><tr><td><div>False</div></td></tr><tr><td><div>None</div></td></tr><tr><td><div><table><tr><td><div><table><tr><td><div>Grupos</div></td></tr><tr><td><div>False</div></td></tr><tr><td><div>http://www.web2py.com/examples/default/usergroups</div></td></tr></table></div></td></tr><tr><td><div><table><tr><td><div>Twitter</div></td></tr><tr><td><div>False</div></td></tr><tr><td><div>http://twitter.com/web2py</div></td></tr></table></div></td></tr><tr><td><div><table><tr><td><div>Chat en vivo</div></td></tr><tr><td><div>False</div></td></tr><tr><td><div>http://webchat.freenode.net/?channels=web2py</div></td></tr></table></div></td></tr></table></div></td></tr></table></div></td></tr></table></div></td></tr><tr><td style="font-weight:bold;vertical-align:top;">meta</td><td style="vertical-align:top;">:</td><td><div><table><tr><td style="font-weight:bold;vertical-align:top;">author</td><td style="vertical-align:top;">:</td><td><div>Your Name &lt;you@example.com&gt;</div></td></tr><tr><td style="font-weight:bold;vertical-align:top;">description</td><td style="vertical-align:top;">:</td><td><div>a cool new app</div></td></tr><tr><td style="font-weight:bold;vertical-align:top;">generator</td><td style="vertical-align:top;">:</td><td><div>Web2py Web Framework</div></td></tr><tr><td style="font-weight:bold;vertical-align:top;">keywords</td><td style="vertical-align:top;">:</td><td><div><table><tr><td><div>web2py</div></td></tr><tr><td><div>python</div></td></tr><tr><td><div>framework</div></td></tr></table></div></td></tr></table></div></td></tr><tr><td style="font-weight:bold;vertical-align:top;">models_to_run</td><td style="vertical-align:top;">:</td><td><div><table><tr><td><div>^\\w+\\.py$</div></td></tr><tr><td><div>^default/\\w+\\.py$</div></td></tr><tr><td><div>^default/campain/\\w+\\.py$</div></td></tr></table></div></td></tr><tr><td style="font-weight:bold;vertical-align:top;">postprocessing</td><td style="vertical-align:top;">:</td><td><div><table></table></div></td></tr><tr><td style="font-weight:bold;vertical-align:top;">session_client</td><td style="vertical-align:top;">:</td><td><div>127.0.0.1</div></td></tr><tr><td style="font-weight:bold;vertical-align:top;">session_cookie_compression_level</td><td style="vertical-align:top;">:</td><td><div>None</div></td></tr><tr><td style="font-weight:bold;vertical-align:top;">session_cookie_expires</td><td style="vertical-align:top;">:</td><td><div>None</div></td></tr><tr><td style="font-weight:bold;vertical-align:top;">session_data_name</td><td style="vertical-align:top;">:</td><td><div>session_data_smscenter</div></td></tr><tr><td style="font-weight:bold;vertical-align:top;">session_file</td><td style="vertical-align:top;">:</td><td><div>&lt;open file &#x27;/home/fvillarroel/web2py/applications/smscenter/sessions/1c5/050/127.0.0.1-33aa7fa1-4f7a-4083-91de-4dc410638974&#x27;, mode &#x27;rb+&#x27; at 0x7fda5e2ae5d0&gt;</div></td></tr><tr><td style="font-weight:bold;vertical-align:top;">session_filename</td><td style="vertical-align:top;">:</td><td><div>/home/fvillarroel/web2py/applications/smscenter/sessions/127.0.0.1-33aa7fa1-4f7a-4083-91de-4dc410638974</div></td></tr><tr><td style="font-weight:bold;vertical-align:top;">session_hash</td><td style="vertical-align:top;">:</td><td><div>745870c0a7bec388c0027cda0d6fa896</div></td></tr><tr><td style="font-weight:bold;vertical-align:top;">session_id</td><td style="vertical-align:top;">:</td><td><div>127.0.0.1-33aa7fa1-4f7a-4083-91de-4dc410638974</div></td></tr><tr><td style="font-weight:bold;vertical-align:top;">session_id_name</td><td style="vertical-align:top;">:</td><td><div>session_id_smscenter</div></td></tr><tr><td style="font-weight:bold;vertical-align:top;">session_locked</td><td style="vertical-align:top;">:</td><td><div>True</div></td></tr><tr><td style="font-weight:bold;vertical-align:top;">session_masterapp</td><td style="vertical-align:top;">:</td><td><div>smscenter</div></td></tr><tr><td style="font-weight:bold;vertical-align:top;">session_new</td><td style="vertical-align:top;">:</td><td><div>False</div></td></tr><tr><td style="font-weight:bold;vertical-align:top;">session_storage_type</td><td style="vertical-align:top;">:</td><td><div>file</div></td></tr><tr><td style="font-weight:bold;vertical-align:top;">status</td><td style="vertical-align:top;">:</td><td><div>200</div></td></tr><tr><td style="font-weight:bold;vertical-align:top;">subtitle</td><td style="vertical-align:top;">:</td><td><div></div></td></tr><tr><td style="font-weight:bold;vertical-align:top;">title</td><td style="vertical-align:top;">:</td><td><div>Smscenter</div></td></tr><tr><td style="font-weight:bold;vertical-align:top;">view</td><td style="vertical-align:top;">:</td><td><div>default/campain.html</div></td></tr></table></div>'
+tRp267
+sS'locals'
+p268
+(dp269
+S'a'
+S"('select id,nombre,fecha,estado,                  ...1                                order by id desc',)"
+p270
+sS'self'
+p271
+S'<pydal.adapters.postgres.PostgreSQLAdapter object>'
+p272
+sS'b'
+g21
+sS'command'
+p273
+S"'select id,nombre,fecha,estado,                  ...1                                order by id desc'"
+p274
+sS't0'
+p275
+S'1464143213.145154'
+p276
+sssS'traceback'
+p277
+S'Traceback (most recent call last):\n  File "/home/fvillarroel/web2py/gluon/restricted.py", line 227, in restricted\n    exec ccode in environment\n  File "/home/fvillarroel/web2py/applications/smscenter/controllers/default.py", line 285, in <module>\n  File "/home/fvillarroel/web2py/gluon/globals.py", line 417, in <lambda>\n    self._caller = lambda f: f()\n  File "/home/fvillarroel/web2py/gluon/tools.py", line 4250, in f\n    return action(*a, **b)\n  File "/home/fvillarroel/web2py/applications/smscenter/controllers/default.py", line 170, in campain\n    order by id desc\' % (auth.user.id,auth.user.id,auth.user.id,auth.user.id,auth.user.id,auth.user.id,auth.user.id))\n  File "/home/fvillarroel/web2py/gluon/packages/dal/pydal/base.py", line 1019, in executesql\n    adapter.execute(query)\n  File "/home/fvillarroel/web2py/gluon/packages/dal/pydal/adapters/postgres.py", line 362, in execute\n    return BaseAdapter.execute(self, *a, **b)\n  File "/home/fvillarroel/web2py/gluon/packages/dal/pydal/adapters/base.py", line 1388, in execute\n    return self.log_execute(*a, **b)\n  File "/home/fvillarroel/web2py/gluon/packages/dal/pydal/adapters/base.py", line 1382, in log_execute\n    ret = self.get_cursor().execute(command, *a[1:], **b)\nProgrammingError: el nombre de tabla \xc2\xabcontactos\xc2\xbb fue especificado m\xc3\xa1s de una vez\n\n'
+p278
+s.
