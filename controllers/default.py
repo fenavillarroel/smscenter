@@ -322,3 +322,77 @@ def store_file(file,filename=None,path=None):
 def retrieve_file(filename, path=None):
     path = "uploads/"
     return (filename, open(os.path.join(path, filename), 'rb'))
+
+
+@request.restful()
+def failedandsent():
+
+    response.view = 'generic.json'
+
+    def POST(*args, **vars):
+
+        idsms=request.vars.ids
+        tipo=reques.vars.tipo
+        fecha=request.vars.fecha
+        entrega=True
+
+        if tipo=='SENT':
+            t=3 #Enviado
+        elif tipo=='FAILED':
+            t=5 #Fallido
+
+        try:
+            db.executesql("update contactos set estado=%s, set envio='%s' where id=%s" % (tipo,fecha,idsms))
+            db.commit()
+        except:
+            return dict(entrega=False)
+
+        #Descontar saldo del cliente para el SMS Enviado
+
+        if tipo=='SENT':
+
+            #Obtenemos el Id del cliente
+            rws=db.executesql("select auth_user.id,contactos.numero from auth_user \
+                                    join lista on auth_user.id=lista.id_clte \
+                                    join contactos on contactos.id_lista=lista.id \
+                                where contactos.id=%s" % (idsms,))[0]
+
+            #Obtenemos el Valor del SMS de la tabla Prefix
+
+            v=db.executesql("select tarifa from prefix where prefix @> '%s' and estado='t'" % (rws[1],))[0]
+
+
+            #Descontamos el saldo del cliente
+            try:
+
+                db.executesql("update auth_user set auth_user.saldo = auth_user.saldo - %s where auth_user.id = %s" % (v[0],rws[0]))
+                db.commit()
+            except:
+
+                return dict(entrega=False)
+            
+        return dict(entrega=entrega)
+
+    return locals()
+
+@request.restful()
+def delivery():
+
+    response.view = 'generic.json'
+
+    def POST(*args, **vars):
+
+        idsms=request.vars.idsms
+        fecha=request.vars.fecha
+        entrega=True
+
+
+        try:
+            db.executesql("update contactos set estado=%s, set entrega='%s' where id=%s" % (4,fecha,idsms))
+            db.commit()
+        except:
+            return dict(entrega=False)
+
+        return dict(entrega=entrega)
+
+    return locals()

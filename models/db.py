@@ -68,6 +68,8 @@ plugins = PluginManager()
 
 ## create all tables needed by auth if not custom tables
 #auth.define_tables(username=False, signature=False)
+db.define_table("tarifas",
+    Field("nombre", length=56, notnull=True,default=None, label="Nombre Tarifa", writable=True), format='%(nombre)s',migrate=True)
 
 auth.settings.extra_fields['auth_user']= [
     Field('nombres', length=128, default=''),
@@ -79,6 +81,7 @@ auth.settings.extra_fields['auth_user']= [
     Field('giro',length=128, default=''),
     Field('prepago','boolean', default='t',notnull=True),
     Field("saldo", "integer", notnull=True, label='Fallidos',default=0,writable=False),
+    Field("tarifa", db.tarifas, notnull=True, label='Tarifa',writable=True),
     Field('telefono',length=128, default=''),
     Field('registration_key', length=512,                # required
         writable=False, readable=False, default=''),
@@ -86,6 +89,8 @@ auth.settings.extra_fields['auth_user']= [
         writable=False, readable=False, default=''),
     Field('registration_id', length=512,                 # required
         writable=False, readable=False, default='')]
+
+db.auth_user.tarifa.requires = IS_IN_DB(db,db.tarifas.id,'%(nombre)s')
 
 auth.define_tables(username=False, signature=False)
 
@@ -138,6 +143,8 @@ db.define_table("contactos",
     Field("msg","string", length=140, notnull=True, default='', label="Texto Mensaje", writable=True),
     Field("gw",db.gateway, notnull=False, label="Gateway",writable=False),
     Field("id_lista",db.lista, notnull=True, label="Lista",writable=False),
+    Field("envio","datetime", notnull=False, label="Envio",writable=False),
+    Field("entrega","datetime", notnull=False, label="Entrega",writable=False),
     Field("estado",db.estadosms, notnull=True,default=1,writable=False),migrate=True)
 
 db.contactos.id_lista.requires = IS_IN_DB(db,db.lista.id,'%(nombre)s')
@@ -165,6 +172,7 @@ db.define_table("tarifas",
 db.define_table("prefix",
     Field("prefix", "string", length=56, notnull=True, label="Prefijo", writable=True),
     Field("tarifa", db.tarifas, notnull=True, label="Nombre Tarifa", writable=True),
+    Field("estado", "boolean", notnull=True, default='t', label="Estado", writable=True),
     Field("nombre", "string", length=56, notnull=True, label="Nombre Prefijo", writable=True),  format='%(nombre)s',migrate=True)
 
 db.prefix.tarifa.requires = IS_IN_DB(db,db.tarifas.id,'%(nombre)s')
