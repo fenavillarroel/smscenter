@@ -2,22 +2,22 @@
 S'fecha'
 p2
 (dp3
-S'sortable'
+S'length'
 p4
+I512
+sS'unique'
+p5
+I00
+sS'sortable'
+p6
 I3
 sS'sql'
-p5
-S'TIMESTAMP NOT NULL'
-p6
-sS'length'
 p7
-I512
-sS'notnull'
+S'TIMESTAMP NOT NULL'
 p8
-I01
-sS'unique'
+sS'notnull'
 p9
-I00
+I01
 sS'type'
 p10
 S'datetime'
@@ -26,16 +26,16 @@ ssS'id_lista'
 p12
 (dp13
 g4
-I10
+I512
 sg5
+I00
+sg6
+I5
+sg7
 S'INTEGER REFERENCES lista (id) ON DELETE CASCADE  NOT NULL '
 p14
-sg7
-I512
-sg8
-I01
 sg9
-I00
+I01
 sg10
 S'reference lista'
 p15
@@ -43,16 +43,16 @@ ssS'id_clte'
 p16
 (dp17
 g4
-I9
+I512
 sg5
+I00
+sg6
+I4
+sg7
 S'INTEGER REFERENCES auth_user (id) ON DELETE CASCADE  NOT NULL '
 p18
-sg7
-I512
-sg8
-I01
 sg9
-I00
+I01
 sg10
 S'reference auth_user'
 p19
@@ -60,16 +60,16 @@ ssS'nombre'
 p20
 (dp21
 g4
-I2
+I56
 sg5
+I00
+sg6
+I2
+sg7
 S'VARCHAR(56) NOT NULL'
 p22
-sg7
-I56
-sg8
-I01
 sg9
-I00
+I01
 sg10
 S'string'
 p23
@@ -77,16 +77,16 @@ ssS'estado'
 p24
 (dp25
 g4
-I11
+I512
 sg5
+I00
+sg6
+I6
+sg7
 S'CHAR(1) NOT NULL'
 p26
-sg7
-I512
-sg8
-I01
 sg9
-I00
+I01
 sg10
 S'boolean'
 p27
@@ -94,17 +94,16 @@ ssS'id'
 p28
 (dp29
 g4
-I1
+I512
 sg5
+I00
+sg6
+I1
+sg7
 S'SERIAL PRIMARY KEY'
 p30
-sg7
-I512
-sg8
-I00
 sg9
 I00
 sg10
-S'id'
-p31
+g28
 ss.

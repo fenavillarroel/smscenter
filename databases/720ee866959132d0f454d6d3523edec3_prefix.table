@@ -10,7 +10,7 @@ p5
 I00
 sS'sortable'
 p6
-I4
+I5
 sS'sql'
 p7
 S'VARCHAR(56) NOT NULL'
@@ -55,9 +55,26 @@ I01
 sg10
 S'reference tarifas'
 p18
-ssS'id'
+ssS'estado'
 p19
 (dp20
+g4
+I512
+sg5
+I00
+sg6
+I4
+sg7
+S'CHAR(1) NOT NULL'
+p21
+sg9
+I01
+sg10
+S'boolean'
+p22
+ssS'id'
+p23
+(dp24
 g4
 I512
 sg5
@@ -66,9 +83,9 @@ sg6
 I1
 sg7
 S'SERIAL PRIMARY KEY'
-p21
+p25
 sg9
 I00
 sg10
-g19
+g23
 ss.

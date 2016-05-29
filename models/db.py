@@ -90,9 +90,10 @@ auth.settings.extra_fields['auth_user']= [
     Field('registration_id', length=512,                 # required
         writable=False, readable=False, default='')]
 
-db.auth_user.tarifa.requires = IS_IN_DB(db,db.tarifas.id,'%(nombre)s')
 
 auth.define_tables(username=False, signature=False)
+
+db.auth_user.tarifa.requires = IS_IN_DB(db,db.tarifas.id,'%(nombre)s')
 
 ##configure email
 mail = auth.settings.mailer
@@ -165,9 +166,6 @@ db.define_table("campain",
 
 db.campain.id_lista.requires = IS_IN_DB(db,db.lista.id,'%(nombre)s')
 db.campain.id_clte.requires = IS_IN_DB(db,db.auth_user.id,'%(nombres)s')
-
-db.define_table("tarifas",
-    Field("nombre", length=56, notnull=True,default=None, label="Nombre Tarifa", writable=True), format='%(nombre)s',migrate=True)
 
 db.define_table("prefix",
     Field("prefix", "string", length=56, notnull=True, label="Prefijo", writable=True),
