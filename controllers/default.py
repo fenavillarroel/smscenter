@@ -261,7 +261,6 @@ def uploadfile():
 
     if form.accepts(request.vars, session,formname='form'):
 
-        try:
             with open('applications/smscenter/uploads/'+form.vars.Archivo,'rb') as fin: 
             # csv.DictReader uses first line in file for column headings by default
                 dr = csv.reader(fin) # comma is default delimiter
@@ -279,15 +278,10 @@ def uploadfile():
 
             redirect(URL('rlistas'))
 
-        except:
-
-            session.flash = T("Error al Leer Archivo CSV Favor Importar Nuevamente!!!")
-            redirect(URL('rlistas'))
 
 
     if form1.accepts(request.vars, session,formname='form1'):
 
-        try:
             with open('applications/smscenter/uploads/'+form1.vars.Archivo,'rb') as fin: 
             # csv.DictReader uses first line in file for column headings by default
                 dr = csv.reader(fin) # comma is default delimiter
@@ -303,10 +297,6 @@ def uploadfile():
 
             redirect(URL('rlistas'))
         
-        except:
-
-            session.flash = T("Error al Leer Archivo CSV Favor Importar Nuevamente!!!")
-            redirect(URL('rlistas'))
 
     return dict(form=form,form1=form1)
 
