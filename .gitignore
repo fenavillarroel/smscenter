@@ -5,3 +5,4 @@ databases/*.table
 databases/*.log
 errors/*
 sessions/session*
+uploads/*.csv
