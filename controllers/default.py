@@ -96,9 +96,11 @@ def addcampain():
 
     if form.process().accepted:
 
-        if auth.user.prepago:
+        clte = db.executesql('select prepago,saldo from auth_user where id=%s' % (auth.user.id,))[0]
 
-            if auth.user.saldo <= 0: #Sin saldo prepago no puede crear campañas
+        if clte[0]:
+
+            if clte[1] <= 0: #Sin saldo prepago no puede crear campañas
         
                 session.flash = T("Su cuenta no registra Saldo Para Crear Campaña!!!")
                 redirect(URL("campain"))
@@ -128,9 +130,12 @@ def addlist():
 
     if request.vars:
 
-        if auth.user.prepago:
+        clte = db.executesql('select prepago,saldo from auth_user where id=%s' % (auth.user.id,))[0]
+    
 
-            if auth.user.saldo <= 0: #Sin saldo prepago no puede crear Listas
+        if clte[0]: #Saber si es prepago
+
+            if clte[1] <= 0: #Sin saldo prepago no puede crear Listas
         
                 session.flash = T("Su cuenta no registra Saldo Para Crear Listas !!!")
                 redirect(URL("rlistas"))
