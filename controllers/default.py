@@ -326,7 +326,7 @@ def failedandsent():
 
     def POST(*args, **vars):
 
-        idsms=request.vars.ids
+        idsms=request.vars.idsms
         tipo=reques.vars.tipo
         fecha=request.vars.fecha
         entrega=True
