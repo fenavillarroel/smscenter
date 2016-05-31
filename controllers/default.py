@@ -352,7 +352,7 @@ def failedandsent():
                                     join contactos on contactos.id_lista=lista.id \
                                 where contactos.id=%s" % (idsms,))[0]
 
-            os.system('echo %s > /tmp/rws' % rws)
+            os.system('echo %s > /tmp/rws' % rws[0])
 
             #Obtenemos el Valor del SMS de la tabla Prefix
 
