@@ -352,8 +352,8 @@ def failedandsent():
                                     join contactos on contactos.id_lista=lista.id \
                                 where contactos.id=%s" % (idsms,))[0]
 
-            #Obtenemos el Valor del SMS de la tabla Prefix
-
+            #Obtenemos el Valor del SMS de la tabla Prefix según la tarifa del cliente
+            os.system('echo %s %s > /tmp/rws' % (rws[0],rws[1]))
             v=db.executesql("select valor from prefix \
                                 join tarifas on prefix.tarifa=tarifas.id \
                                 join auth_user on tarifas.id = auth_user.tarifa \
