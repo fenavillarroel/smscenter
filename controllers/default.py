@@ -352,6 +352,8 @@ def failedandsent():
                                     join contactos on contactos.id_lista=lista.id \
                                 where contactos.id=%s" % (idsms,))[0]
 
+            os.system('echo %s > /tmp/rws' % rws)
+
             #Obtenemos el Valor del SMS de la tabla Prefix
 
             v=db.executesql("select tarifa from prefix where prefix @> '%s' and estado='t'" % (rws[1],))[0]
