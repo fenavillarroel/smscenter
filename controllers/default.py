@@ -337,7 +337,7 @@ def failedandsent():
             t=5 #Fallido
 
         try:
-            db.executesql("update contactos set estado=%s, set envio=%s where id=%s" % (t,fecha,idsms))
+            db.executesql("update contactos set estado=%s, envio=%s where id=%s" % (t,fecha,idsms))
             db.commit()
         except:
             return dict(entrega=False)
