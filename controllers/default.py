@@ -352,11 +352,12 @@ def failedandsent():
                                     join contactos on contactos.id_lista=lista.id \
                                 where contactos.id=%s" % (idsms,))[0]
 
-            os.system('echo %s > /tmp/rws' % rws[1])
-
             #Obtenemos el Valor del SMS de la tabla Prefix
 
-            v=db.executesql("select tarifa from prefix where prefix @> '%s' and estado='t'" % (rws[1],))[0]
+            v=db.executesql("select valor from prefix \
+                                join tarifas on prefix.tarifa=tarifas.id \
+                                join auth_user on tarifas.id = auth_user.tarifa \
+                            where prefix @> '%s' and auth_user.id=%s and estado='t'" % (rws[1],rws[0]))[0]
 
 
             #Descontamos el saldo del cliente

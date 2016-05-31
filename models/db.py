@@ -171,6 +171,7 @@ db.define_table("prefix",
     Field("prefix", "string", length=56, notnull=True, label="Prefijo", writable=True),
     Field("tarifa", db.tarifas, notnull=True, label="Nombre Tarifa", writable=True),
     Field("estado", "boolean", notnull=True, default='t', label="Estado", writable=True),
+    Field("valor", "integer", notnull=True, default=0, label="Valor", writable=True),
     Field("nombre", "string", length=56, notnull=True, label="Nombre Prefijo", writable=True),  format='%(nombre)s',migrate=True)
 
 db.prefix.tarifa.requires = IS_IN_DB(db,db.tarifas.id,'%(nombre)s')
