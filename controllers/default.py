@@ -353,11 +353,10 @@ def failedandsent():
                                 where contactos.id=%s" % (idsms,))[0]
 
             #Obtenemos el Valor del SMS de la tabla Prefix según la tarifa del cliente
-            os.system('echo %s %s > /tmp/rws' % (rws[0],rws[1]))
             v=db.executesql("select valor from prefix \
                                 join tarifas on prefix.tarifa=tarifas.id \
                                 join auth_user on tarifas.id = auth_user.tarifa \
-                            where prefix @> '%s' and auth_user.id=%s and estado='t'" % (rws[1],rws[0]))[0]
+                            where prefix @> '%s' and auth_user.id=%s and estado='t'" % (rws[1],rws[0]))
 
 
             #Descontamos el saldo del cliente
