@@ -361,7 +361,7 @@ def failedandsent():
             #Descontamos el saldo del cliente
             try:
 
-                db.executesql("update auth_user set auth_user.saldo = auth_user.saldo - %s where auth_user.id = %s" % (v[0],rws[0]))
+                db.executesql("update auth_user set saldo = saldo - %s where id = %s" % (v[0],rws[0]))
                 db.commit()
             except:
 
