@@ -356,7 +356,7 @@ def failedandsent():
             v=db.executesql("select valor from prefix \
                                 join tarifas on prefix.tarifa=tarifas.id \
                                 join auth_user on tarifas.id = auth_user.tarifa \
-                            where prefix @> '%s' and auth_user.id=%s and estado='t'" % (rws[1],rws[0]))
+                            where prefix @> '%s' and auth_user.id=%s and estado='t'" % (rws[1],rws[0]))[0]
 
 
             #Descontamos el saldo del cliente
