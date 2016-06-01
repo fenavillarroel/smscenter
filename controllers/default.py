@@ -356,8 +356,7 @@ def failedandsent():
             v=db.executesql("select valor from prefix \
                                 join tarifas on prefix.tarifa=tarifas.id \
                                 join auth_user on tarifas.id = auth_user.tarifa \
-                            where prefix @> '%s' and auth_user.id=%s and estado='t'" % (rws[1],rws[0]))[0]
-
+                            where prefix @> '%s' and auth_user.id=%s and prefix.estado='T'" % (rws[1],rws[0]))[0]
 
             #Descontamos el saldo del cliente
             try:
@@ -385,7 +384,7 @@ def delivery():
 
 
         try:
-            db.executesql("update contactos set estado=%s, set entrega='%s' where id=%s" % (4,fecha,idsms))
+            db.executesql("update contactos set estado=%s, entrega='%s' where id=%s" % (4,fecha,idsms))
             db.commit()
         except:
             return dict(entrega=False)

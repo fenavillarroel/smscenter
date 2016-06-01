@@ -119,3 +119,6 @@ CREATE TABLE prefix(
     nombre VARCHAR(56) NOT NULL
 );
 success!
+timestamp: 2016-05-31T23:35:59.509965
+ALTER TABLE prefix ADD valor INTEGER NOT NULL DEFAULT 0;
+success!
