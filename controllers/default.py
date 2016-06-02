@@ -384,7 +384,7 @@ def delivery():
 
 
         try:
-            db.executesql("update contactos set estado=%s, entrega='%s' where id=%s" % (4,fecha,idsms))
+            db.executesql("update contactos set estado=%s, entrega='%s' where id=%s" % (4,datetime.datetime.now(),idsms))
             db.commit()
         except:
             return dict(entrega=False)
