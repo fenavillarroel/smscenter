@@ -382,7 +382,6 @@ def delivery():
         fecha=request.vars.fecha
         entrega=True
 
-
         try:
             db.executesql("update contactos set estado=%s, entrega='%s' where id=%s" % (4,datetime.datetime.now(),idsms))
             db.commit()
