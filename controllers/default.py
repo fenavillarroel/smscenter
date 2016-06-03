@@ -240,7 +240,7 @@ def contactos():
 
     idlista=request.args[0]
 
-    rws=db.executesql('select contactos.id,contactos.numero,contactos.msg,estadosms.nombre from contactos \
+    rws=db.executesql('select contactos.id,contactos.numero,contactos.msg,estadosms.nombre,contactos.envio,contactos.entrega from contactos \
                         join estadosms on estadosms.id=contactos.estado \
                         where contactos.id_lista=%s \
                         order by contactos.id desc' % (idlista,))
