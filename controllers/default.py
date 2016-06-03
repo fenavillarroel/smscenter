@@ -239,6 +239,7 @@ def updatecampain():
 def contactos():
 
     idlista=request.args[0]
+    nombre=request.args[1]
 
     rws=db.executesql('select contactos.id,contactos.numero,contactos.msg,estadosms.nombre,contactos.envio,contactos.entrega from contactos \
                         join estadosms on estadosms.id=contactos.estado \
@@ -246,7 +247,20 @@ def contactos():
                         order by contactos.id desc' % (idlista,))
 
 
-    return dict(rws=rws)
+    return dict(rws=rws,nombre=nombre)
+
+@auth.requires_login()
+def downloadfile():
+
+    idlista=request.args[0]
+    orderby=db.contactos.id
+    query=(db.contactos.id_lista==idlista)
+    left=[db.estadosms.on(db.contactos.estado==db.estadosms.id)]
+    fields=[db.contactos.id,db.contactos.numero,db.contactos.msg,db.contactos.envio,db.contactos.entrega,db.estadosms.nombre]
+    form=SQLFORM.smartgrid(db.contactos, constraints=dict(contactos=query),fields=fields,orderby=orderby,left=left,searchable=None,
+                            details=False,create=False,editable=False,deletable=False,csv=True,paginate=50,formstyle='bootstrap')
+                            
+    return dict(form=form)
 
 @auth.requires_login()
 def uploadfile():

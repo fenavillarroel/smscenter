@@ -12,6 +12,7 @@
 			<th>Editar</th>
 			<th>Ver Contactos</th>
 			<th>Importar Contactos</th>
+			<th>Exportar Contactos</th>
 		</tr>
 		</thead>
 		<tbody>
@@ -20,8 +21,9 @@
 					<td>{{=r[0]}}</td>
 					<td>{{=r[1]}}</td>
 					<td><a href="{{=URL('default','lista', args=[r[0]])}}">Editar</a></td>
-					<td><a href="{{=URL('default','contactos', args=[r[0]])}}">Ver Contactos</a></td>
+					<td><a href="{{=URL('default','contactos', args=[r[0],r[1]])}}">Ver Contactos</a></td>
 					<td><a href="{{=URL('default','uploadfile',args=[auth.user.id,r[0]])}}">Subir Contactos</a></td>
+					<td><a href="{{=URL('default','downloadfile',args=[r[0]])}}">Exportar Contactos</a></td>
 				{{pass}}
 				</tr>
      </tbody>
