@@ -88,7 +88,7 @@ class db:
                 self.cur.execute("select contactos.id,contactos.numero,contactos.msg from contactos    \
                                     join lista on lista.id=contactos.id_lista   \
                                     join campain on campain.id=lista.id \
-                                    where campain.estado='T' and campain.fecha >= '%s' and contactos.estado=1 \
+                                    where campain.estado='T' and campain.fecha <= '%s' and contactos.estado=1 \
                                     order by random() limit 1" % (datetime.datetime.now(),))
 
                 res=self.cur.fetchone()
