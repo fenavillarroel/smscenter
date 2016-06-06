@@ -29,8 +29,21 @@
      </tbody>
 </table>
 
-<script type="text/javascript">
-	$(document).ready(function(){
-	$('#myTable').dataTable();
-	});
+
+<script>
+$(document).ready(function(){
+    $('#myTable').dataTable({
+					"language": {
+					"lengthMenu": "Mostrando _MENU_ registros por página",
+					"zeroRecords": "Nothing found - sorry",
+					"info": "Mostrando página _PAGE_ de _PAGES_",
+					"infoEmpty": "No records available",
+					"infoFiltered": "(filtered from _MAX_ total records)",
+					"sSearch": "Buscar:"
+				},
+				"pageLength":100
+}
+);
+});
 </script>
+

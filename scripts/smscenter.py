@@ -128,7 +128,7 @@ class App():
                 if dsms:
 
 
-                    logger.info("Procesando sms Id % Al numero %s por el Gateway %" % (dsms[0],dsms[1],gts[0]))
+                    logger.info("Procesando sms Id %s Al numero %s por el Gateway %s" % (dsms[0],dsms[1],gts[0]))
                     payload={}
                     payload['number']=dsms[1]
                     payload['text']=dsms[2]
@@ -140,7 +140,7 @@ class App():
                     response = requests.post(url, data=json.dumps(payload), headers=headers)
                     if response.ok:
                         bbdd.cola(dsms[0])
-                        logger.info("SMS Id % Al numero %s por el Gateway % Enviado Correctamente Su estado esta en COLA" % (dsms[0],dsms[1],gts[0]))
+                        logger.info("SMS Id %s Al numero %s por el Gateway %s Enviado Correctamente Su estado esta en COLA" % (dsms[0],dsms[1],gts[0]))
 
                         #print "OK" #Se actualiza a estado cola
                     else:
@@ -148,9 +148,9 @@ class App():
 
                         #print response #Sigue como Pendiente
 
-                else:
+                #else:
 
-                    logger.info("No hay SMS Por Enviar....")
+                 #   logger.info("No hay SMS Por Enviar....")
 
 
             #Main code goes here ...
