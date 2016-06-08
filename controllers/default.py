@@ -275,9 +275,12 @@ def uploadfile():
 
     if form.accepts(request.vars, session,formname='form'):
 
-            with open('applications/smscenter/uploads/'+form.vars.Archivo,'rb') as fin: 
+            with open('applications/smscenter/uploads/'+form.vars.Archivo,'rU') as fin: 
             # csv.DictReader uses first line in file for column headings by default
-                dr = csv.reader(fin) # comma is default delimiter
+                dialect = csv.Sniffer().sniff(fin.read(), delimiters=';,')
+                fin.seek(0)
+                #reader = csv.reader(csvfile, dialect)
+                dr = csv.reader(fin,dialect) # comma is default delimiter
                 for row in dr:
                     try:
                         db.executesql("insert into contactos (numero,msg,id_lista) values ('%s','%s',%s)" % (row[0],row[1],lista))
@@ -296,8 +299,10 @@ def uploadfile():
 
     if form1.accepts(request.vars, session,formname='form1'):
 
-            with open('applications/smscenter/uploads/'+form1.vars.Archivo,'rb') as fin: 
+            with open('applications/smscenter/uploads/'+form1.vars.Archivo,'rU') as fin: 
             # csv.DictReader uses first line in file for column headings by default
+                #dialect = csv.Sniffer().sniff(fin.read(), delimiters=';,')
+                #fin.seek(0)
                 dr = csv.reader(fin) # comma is default delimiter
                 for row in dr:
                     try:

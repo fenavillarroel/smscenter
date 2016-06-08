@@ -146,7 +146,7 @@ db.define_table("contactos",
     Field("id_lista",db.lista, notnull=True, label="Lista",writable=False),
     Field("envio","datetime", notnull=False, label="Envio",writable=False),
     Field("entrega","datetime", notnull=False, label="Entrega",writable=False),
-    Field("estado",db.estadosms, notnull=True,default=1,writable=False),migrate=True)
+    Field("estado",db.estadosms, notnull=True, label="Estado",default=1,writable=False),migrate=True)
 
 db.contactos.id_lista.requires = IS_IN_DB(db,db.lista.id,'%(nombre)s')
 db.contactos.estado.requires = IS_IN_DB(db,db.estadosms.id,'%(nombre)s')
@@ -162,7 +162,7 @@ db.define_table("campain",
 #   Field("Fallidos", "integer", notnull=True, label='Fallidos',default=0,writable=False),
    Field("id_clte", db.auth_user, notnull=True,writable=False),
    Field("id_lista", db.lista, notnull=True,writable=True),
-   Field("estado", "boolean", notnull=True, label='Estado', default='t',writable=True),format='%(nombre)s',migrate=True)
+   Field("estado", "boolean", notnull=True, label='Activa', default='t',writable=True),format='%(nombre)s',migrate=True)
 
 db.campain.id_lista.requires = IS_IN_DB(db,db.lista.id,'%(nombre)s')
 db.campain.id_clte.requires = IS_IN_DB(db,db.auth_user.id,'%(nombres)s')
