@@ -98,7 +98,7 @@ def addcampain():
 
         clte = db.executesql('select prepago,saldo from auth_user where id=%s' % (auth.user.id,))[0]
 
-        if clte[0]:
+        if clte[0]=='T':
 
             if clte[1] <= 0: #Sin saldo prepago no puede crear campañas
         

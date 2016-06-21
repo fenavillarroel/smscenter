@@ -1,9 +1,11 @@
 {{extend 'layout.html'}}
 
+<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js"></script>
 <link rel="stylesheet" href="http://cdn.datatables.net/1.10.2/css/jquery.dataTables.min.css"></style>
 <script type="text/javascript" src="http://cdn.datatables.net/1.10.2/js/jquery.dataTables.min.js"></script>
 
 <h2>Mis Campañas</h2>
+<div class="table-responsive">
 <table id="myTable" class="table table-striped" >
    <thead>
 	   <tr>
@@ -50,9 +52,20 @@
 </table>
 <br>
 <a href="addcampain" class="btn btn-info" role="button">Agregar Campaña</a>
+</div>
 
 <script type="text/javascript">
 	$(document).ready(function(){
 	$('#myTable').dataTable();
 	});
 </script>
+<script>
+ $(document).ready(function(){
+ setInterval(function(){cache_clear()},60000);
+ });
+	function cache_clear()
+	{
+		window.location.reload(true);
+	}
+</script>
+

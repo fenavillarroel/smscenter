@@ -377,6 +377,7 @@
 'Static files': 'Archivos estáticos',
 'Statistics': 'Estadísticas',
 'Stylesheet': 'Hoja de estilo',
+'Su cuenta no registra Saldo Para Crear Campaña!!!': 'Su cuenta no registra Saldo Para Crear Campaña!!!',
 'Su cuenta no registra Saldo Para Crear Listas !!!': 'Su cuenta no registra Saldo Para Crear Listas !!!',
 'Submit': 'Enviar',
 'submit': 'enviar',
