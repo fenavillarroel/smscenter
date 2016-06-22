@@ -133,7 +133,7 @@ def addlist():
         clte = db.executesql('select prepago,saldo from auth_user where id=%s' % (auth.user.id,))[0]
     
 
-        if clte[0]: #Saber si es prepago
+        if clte[0]=='T': #Saber si es prepago
 
             if clte[1] <= 0: #Sin saldo prepago no puede crear Listas
         
@@ -274,6 +274,8 @@ def uploadfile():
     #form1.process(formname='form1')
 
     if form.accepts(request.vars, session,formname='form'):
+            db.executesql("delete from contactos where id_lista=%s" % (lista,))
+            db.commit()
 
             with open('applications/smscenter/uploads/'+form.vars.Archivo,'rU') as fin: 
             # csv.DictReader uses first line in file for column headings by default
@@ -298,6 +300,8 @@ def uploadfile():
 
 
     if form1.accepts(request.vars, session,formname='form1'):
+            db.executesql("delete from contactos where id_lista=%s" % (lista,))
+            db.commit()
 
             with open('applications/smscenter/uploads/'+form1.vars.Archivo,'rU') as fin: 
             # csv.DictReader uses first line in file for column headings by default
