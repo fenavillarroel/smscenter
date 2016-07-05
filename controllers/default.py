@@ -257,7 +257,7 @@ def downloadfile():
     query=(db.contactos.id_lista==idlista)
     left=[db.estadosms.on(db.contactos.estado==db.estadosms.id)]
     fields=[db.contactos.id,db.contactos.numero,db.contactos.msg,db.contactos.envio,db.contactos.entrega,db.estadosms.nombre]
-    form=SQLFORM.smartgrid(db.contactos, constraints=dict(contactos=query),fields=fields,orderby=orderby,left=left,searchable=None,
+    form=SQLFORM.smartgrid(db.contactos, constraints=dict(contactos=query),fields=fields,orderby=orderby,left=left,searchable=None,args=request.args[:1],
                             details=False,create=False,editable=False,deletable=False,csv=True,paginate=50,formstyle='bootstrap')
                             
     return dict(form=form)
@@ -269,7 +269,7 @@ def uploadfile():
 
     form=SQLFORM.factory(Field('Archivo','upload',custom_store=store_file),formstyle='bootstrap',_class="form-group")
     #form.process(formname='form')
-    form1=SQLFORM.factory(Field('Mensaje','text',requires=IS_NOT_EMPTY()),
+    form1=SQLFORM.factory(Field('Mensaje','text', requires=IS_NOT_EMPTY()),
                         Field('Archivo','upload',custom_store=store_file),formstyle='bootstrap',_class="form-group")
     #form1.process(formname='form1')
 
