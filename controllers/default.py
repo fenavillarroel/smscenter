@@ -273,6 +273,7 @@ def uploadfile():
 
     id_user,lista=request.args[0],request.args[1]
     malos=[]
+    b,m=0,0
     form=SQLFORM.factory(Field('Archivo','upload',custom_store=store_file),formstyle='bootstrap',_class="form-group")
     #form.process(formname='form')
     form1=SQLFORM.factory(Field('Mensaje','text', requires=IS_NOT_EMPTY()),
@@ -293,23 +294,26 @@ def uploadfile():
                     try:
                         if not row[0].isdigit() or len(row[0]) <> 9 or row[0][:1]<> '9':
                             malos.append(row[0])
+                            m+=1
                         else:
                             db.executesql("insert into contactos (numero,msg,id_lista) values ('%s','%s',%s)" % (row[0],row[1],lista))
                             db.commit()
+                            b+=1
                     except:
                         session.flash = T("Error al Procesar Atchivo CSV Favor Importar Nuevamente!!!")
                         redirect(URL('rlistas'))
 
+            os.system('rm %s'% 'applications/smscenter/uploads/'+form.vars.Archivo)
             
             if malos:
-                session.flash = T("Los siguientes Números de Contactos No fueron insertados en la Lista !!!")
+                t="Existen %s Contactos Erroneos y Solo se insertaron %s Contactos Favor Correjir CSV y Subir Nuevamente" % (m,b)
+                session.flash = T(t)
                 redirect(URL('erroneos',args=malos))
             else:
-                session.flash = T("Contactos Insertados Correctamente!!!")
+                t="Se Insertarón Correctamente los %s Contactos !!!!!" % (b,) 
+                session.flash = T(t)
                 redirect(URL('rlistas'))
             
-            os.system('rm %s'% 'applications/smscenter/uploads/'+form.vars.Archivo)
-            #session.flash = T("Contactos Insertados Correctamente!!!")
 
 
 
@@ -326,23 +330,26 @@ def uploadfile():
                     try:
                         if not row[0].isdigit() or len(row[0]) <> 9 or row[0][:1]<> '9':
                             malos.append(row[0])
+                            m+=1
                         else:
                             db.executesql("insert into contactos (numero,msg,id_lista) values ('%s','%s',%s)" % (row[0],form1.vars.Mensaje,lista))
                             db.commit()
+                            b+=1
                     except:
                         session.flash = T("Error al Procesar Atchivo CSV Favor Importar Nuevamente!!!")
                         redirect(URL('rlistas'))
-            if malos:
-                session.flash = T("Los siguientes Números de Contactos No fueron insertados en la Lista !!!")
-                redirect(URL('erroneos',args=malos))
-            else:
-                session.flash = T("Contactos Insertados Correctamente!!!")
-                redirect(URL('rlistas'))
             
             os.system('rm %s'% 'applications/smscenter/uploads/'+form1.vars.Archivo)
-            #session.flash = T("Contactos y Mensaje Manual Correctamente Insertados!!!")
-
-            redirect(URL('rlistas'))
+            
+            if malos:
+                t="Existen %s Contactos Erroneos y Solo se insertaron %s Contactos Favor Correjir CSV y Subir Nuevamente" % (m,b)
+                session.flash = T(t)
+                redirect(URL('erroneos',args=malos))
+            else:
+                t="Se Insertarón Correctamente los %s Contactos !!!!!" % (b,) 
+                session.flash = T(t)
+                redirect(URL('rlistas'))
+            
         
 
     return dict(form=form,form1=form1)
