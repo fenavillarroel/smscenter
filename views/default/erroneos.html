@@ -1,0 +1,27 @@
+{{extend 'layout.html'}}
+
+<link rel="stylesheet" href="http://cdn.datatables.net/1.10.2/css/jquery.dataTables.min.css"></style>
+<script type="text/javascript" src="http://cdn.datatables.net/1.10.2/js/jquery.dataTables.min.js"></script>
+
+<h2>Registros Erroneos</h2>
+<table id="myTable" class="table table-striped" >
+   <thead>
+	   <tr>
+		  <th>Número</th>
+		</tr>
+		</thead>
+		<tbody>
+			{{for r in errs:}}
+				<tr>
+					<td>{{=r}}</td>
+				{{pass}}
+				</tr>
+     </tbody>
+</table>
+<br>
+
+<script type="text/javascript">
+	$(document).ready(function(){
+	$('#myTable').dataTable();
+	});
+</script>

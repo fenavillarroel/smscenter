@@ -264,6 +264,7 @@
 'Login to the Administrative Interface': 'Inicio de sesión para la Interfaz Administrativa',
 'logout': 'fin de sesión',
 'Logout': 'Fin de sesión',
+'Los siguientes Números de Contactos No fueron insertados en la Lista !!!': 'Los siguientes Números de Contactos No fueron insertados en la Lista !!!',
 'Lost Password': 'Contraseña perdida',
 'Lost password?': '¿Olvidó la contraseña?',
 'lost password?': '¿olvidó la contraseña?',
