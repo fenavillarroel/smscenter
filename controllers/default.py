@@ -286,10 +286,15 @@ def uploadfile():
 
             with open('applications/smscenter/uploads/'+form.vars.Archivo,'rU') as fin: 
             # csv.DictReader uses first line in file for column headings by default
-                dialect = csv.Sniffer().sniff(fin.read(), delimiters=';,')
-                fin.seek(0)
-                #reader = csv.reader(csvfile, dialect)
-                dr = csv.reader(fin,dialect) # comma is default delimiter
+                try:
+
+                    dialect = csv.Sniffer().sniff(fin.read(), delimiters=';,')
+                    fin.seek(0)
+                    #reader = csv.reader(csvfile, dialect)
+                    dr = csv.reader(fin,dialect) # comma is default delimiter
+                except:
+                    session.flash = T('ERROR Esta tratando de Importar un CSV que solo contiene Números Favor Subir Nuevamente Contactos')
+                    redirect(URL('rlistas'))
                 for row in dr:
                     try:
                         if not row[0].isdigit() or len(row[0]) <> 9 or row[0][:1]<> '9':
