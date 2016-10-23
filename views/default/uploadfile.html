@@ -1,9 +1,25 @@
 {{extend 'layout.html'}}
 
+<script type="text/javascript">
+$(document).ready(function(){
+    $('input[type="radio"]').click(function(){
+			if($(this).attr("value")=="0"){
+				$("#show-me").show();
+				$("#watch-me").hide();
+				$('#si').val(1);
+			}
+			else {
+				$("#show-me").hide();
+				$("#watch-me").show();
+				$('#si').val(0);
+			}
+		});
+});
+</script>
 <h2>Formulario Subir Lista de Contactos </h2>
 <h3>Importante tú archivo debe estar en Formato CSV !!!</h3>
 <div class="radio">
-  <label><input  type="radio" name="telefono" value=1>Archivo Contiene solo Números de Telefono</label>
+  <label><input  id="si" type="radio" name="telefono" value=0>Archivo Contiene solo Números de Telefono</label>
 </div>
 <div id='wath-me' class="form-group">
 	{{=form}}
@@ -12,38 +28,6 @@
 <div id='show-me' style='display:none'>
 	{{=form1}}
 </div>
-<script type='text/javascript'>
-// <![CDATA[
-jQuery(document).ready(function(){
 
-$('input:radio[name="telefono"]').change(function(){
-    if ($(this).is(':checked')){
-					 $('#show-me').show();           
-					 $('#wath-me').hide();           
-			}
-		else {
-					$('#wath-me').show();   
-					 $('#show-me').hide();           
-					}
 
-});
 
-});
-
-// ]]>
-</script>
-<!--
-<script type='text/javascript'>
-$(document).ready(function() {
-   $('input[type="radio"]').click(function() {
-	     	if($('#wath-me').attr('id') == 'watch-me') {
-					 $('#show-me').show();           
-					}
-
-				else {
-					$('#show-me').hide();   
-					}
-	});
-});
-</script>
--->
