@@ -1,0 +1,12 @@
+.navbar-default .navbar-collapse, .navbar-default .navbar-form {
+	background-color: #ffeb00; 
+}
+#footer1 {
+    position: fixed;
+    left: 0;
+    bottom: 0;
+    width: 100%;
+    background-color:#ffeb00; 
+    color: white;
+    text-align: center;
+}

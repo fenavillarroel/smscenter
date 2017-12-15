@@ -1,124 +1,122 @@
-timestamp: 2016-05-28T20:55:33.313165
-CREATE TABLE tarifas(
-    id SERIAL PRIMARY KEY,
-    nombre VARCHAR(56) NOT NULL
+timestamp: 2017-12-15T12:19:21.106185
+CREATE TABLE "tarifas"(
+    "id" SERIAL PRIMARY KEY,
+    "nombre" VARCHAR(56) NOT NULL
 );
 success!
-timestamp: 2016-05-28T20:55:33.349291
-CREATE TABLE auth_user(
-    id SERIAL PRIMARY KEY,
-    first_name VARCHAR(128),
-    last_name VARCHAR(128),
-    email VARCHAR(512),
-    password VARCHAR(512),
-    registration_key VARCHAR(512),
-    reset_password_key VARCHAR(512),
-    registration_id VARCHAR(512),
-    nombres VARCHAR(128),
-    rut VARCHAR(28),
-    direccion VARCHAR(128),
-    giro VARCHAR(128),
-    prepago CHAR(1) NOT NULL DEFAULT 'T',
-    saldo INTEGER NOT NULL DEFAULT 0,
-    tarifa INTEGER REFERENCES tarifas (id) ON DELETE CASCADE  NOT NULL ,
-    telefono VARCHAR(128)
+timestamp: 2017-12-15T12:19:21.123450
+CREATE TABLE "auth_user"(
+    "id" SERIAL PRIMARY KEY,
+    "first_name" VARCHAR(128),
+    "last_name" VARCHAR(128),
+    "email" VARCHAR(512),
+    "password" VARCHAR(512),
+    "registration_key" VARCHAR(512),
+    "reset_password_key" VARCHAR(512),
+    "registration_id" VARCHAR(512),
+    "nombres" VARCHAR(128),
+    "rut" VARCHAR(28),
+    "direccion" VARCHAR(128),
+    "giro" VARCHAR(128),
+    "prepago" CHAR(1) NOT NULL DEFAULT 'T',
+    "saldo" INTEGER NOT NULL DEFAULT 0,
+    "tarifa" INTEGER REFERENCES "tarifas" ("id") ON DELETE CASCADE  NOT NULL ,
+    "telefono" VARCHAR(128)
 );
 success!
-timestamp: 2016-05-28T20:55:33.365342
-CREATE TABLE auth_group(
-    id SERIAL PRIMARY KEY,
-    role VARCHAR(512),
-    description TEXT
+timestamp: 2017-12-15T12:19:21.141891
+CREATE TABLE "auth_group"(
+    "id" SERIAL PRIMARY KEY,
+    "role" VARCHAR(512),
+    "description" TEXT
 );
 success!
-timestamp: 2016-05-28T20:55:33.383209
-CREATE TABLE auth_membership(
-    id SERIAL PRIMARY KEY,
-    user_id INTEGER REFERENCES auth_user (id) ON DELETE CASCADE  ,
-    group_id INTEGER REFERENCES auth_group (id) ON DELETE CASCADE  
+timestamp: 2017-12-15T12:19:21.156855
+CREATE TABLE "auth_membership"(
+    "id" SERIAL PRIMARY KEY,
+    "user_id" INTEGER REFERENCES "auth_user" ("id") ON DELETE CASCADE  ,
+    "group_id" INTEGER REFERENCES "auth_group" ("id") ON DELETE CASCADE  
 );
 success!
-timestamp: 2016-05-28T20:55:33.393310
-CREATE TABLE auth_permission(
-    id SERIAL PRIMARY KEY,
-    group_id INTEGER REFERENCES auth_group (id) ON DELETE CASCADE  ,
-    name VARCHAR(512),
-    table_name VARCHAR(512),
-    record_id INTEGER
+timestamp: 2017-12-15T12:19:21.174640
+CREATE TABLE "auth_permission"(
+    "id" SERIAL PRIMARY KEY,
+    "group_id" INTEGER REFERENCES "auth_group" ("id") ON DELETE CASCADE  ,
+    "name" VARCHAR(512),
+    "table_name" VARCHAR(512),
+    "record_id" INTEGER
 );
 success!
-timestamp: 2016-05-28T20:55:33.412709
-CREATE TABLE auth_event(
-    id SERIAL PRIMARY KEY,
-    time_stamp TIMESTAMP,
-    client_ip VARCHAR(512),
-    user_id INTEGER REFERENCES auth_user (id) ON DELETE CASCADE  ,
-    origin VARCHAR(512),
-    description TEXT
+timestamp: 2017-12-15T12:19:21.190010
+CREATE TABLE "auth_event"(
+    "id" SERIAL PRIMARY KEY,
+    "time_stamp" TIMESTAMP,
+    "client_ip" VARCHAR(512),
+    "user_id" INTEGER REFERENCES "auth_user" ("id") ON DELETE CASCADE  ,
+    "origin" VARCHAR(512),
+    "description" TEXT
 );
 success!
-timestamp: 2016-05-28T20:55:33.425221
-CREATE TABLE auth_cas(
-    id SERIAL PRIMARY KEY,
-    user_id INTEGER REFERENCES auth_user (id) ON DELETE CASCADE  ,
-    created_on TIMESTAMP,
-    service VARCHAR(512),
-    ticket VARCHAR(512),
-    renew CHAR(1)
+timestamp: 2017-12-15T12:19:21.209565
+CREATE TABLE "auth_cas"(
+    "id" SERIAL PRIMARY KEY,
+    "user_id" INTEGER REFERENCES "auth_user" ("id") ON DELETE CASCADE  ,
+    "created_on" TIMESTAMP,
+    "service" VARCHAR(512),
+    "ticket" VARCHAR(512),
+    "renew" CHAR(1)
 );
 success!
-timestamp: 2016-05-28T20:55:33.441740
-CREATE TABLE gateway(
-    id SERIAL PRIMARY KEY,
-    nombre VARCHAR(56) NOT NULL,
-    url VARCHAR(256) NOT NULL,
-    estado CHAR(1) NOT NULL DEFAULT 'T'
+timestamp: 2017-12-15T12:19:21.227254
+CREATE TABLE "gateway"(
+    "id" SERIAL PRIMARY KEY,
+    "nombre" VARCHAR(56) NOT NULL,
+    "url" VARCHAR(256) NOT NULL,
+    "estado" CHAR(1) NOT NULL DEFAULT 'T'
 );
 success!
-timestamp: 2016-05-28T20:55:33.452184
-CREATE TABLE estadosms(
-    id SERIAL PRIMARY KEY,
-    nombre VARCHAR(56) NOT NULL
+timestamp: 2017-12-15T12:19:21.240804
+CREATE TABLE "estadosms"(
+    "id" SERIAL PRIMARY KEY,
+    "nombre" VARCHAR(56) NOT NULL
 );
 success!
-timestamp: 2016-05-28T20:55:33.460358
-CREATE TABLE lista(
-    id SERIAL PRIMARY KEY,
-    nombre VARCHAR(56) NOT NULL,
-    id_clte INTEGER REFERENCES auth_user (id) ON DELETE CASCADE  NOT NULL 
+timestamp: 2017-12-15T12:19:21.255073
+CREATE TABLE "lista"(
+    "id" SERIAL PRIMARY KEY,
+    "nombre" VARCHAR(56) NOT NULL,
+    "id_clte" INTEGER REFERENCES "auth_user" ("id") ON DELETE CASCADE  NOT NULL 
 );
 success!
-timestamp: 2016-05-28T20:55:33.468943
-CREATE TABLE contactos(
-    id SERIAL PRIMARY KEY,
-    numero VARCHAR(56) NOT NULL,
-    msg VARCHAR(140) NOT NULL DEFAULT '',
-    gw INTEGER REFERENCES gateway (id) ON DELETE CASCADE  ,
-    id_lista INTEGER REFERENCES lista (id) ON DELETE CASCADE  NOT NULL ,
-    envio TIMESTAMP,
-    entrega TIMESTAMP,
-    estado INTEGER REFERENCES estadosms (id) ON DELETE CASCADE  NOT NULL DEFAULT 1 
+timestamp: 2017-12-15T12:19:21.274061
+CREATE TABLE "contactos"(
+    "id" SERIAL PRIMARY KEY,
+    "numero" VARCHAR(56) NOT NULL,
+    "msg" VARCHAR(140) NOT NULL DEFAULT '',
+    "gw" INTEGER REFERENCES "gateway" ("id") ON DELETE CASCADE  ,
+    "id_lista" INTEGER REFERENCES "lista" ("id") ON DELETE CASCADE  NOT NULL ,
+    "envio" TIMESTAMP,
+    "entrega" TIMESTAMP,
+    "estado" INTEGER REFERENCES "estadosms" ("id") ON DELETE CASCADE  NOT NULL DEFAULT 1 
 );
 success!
-timestamp: 2016-05-28T20:55:33.482032
-CREATE TABLE campain(
-    id SERIAL PRIMARY KEY,
-    nombre VARCHAR(56) NOT NULL,
-    fecha TIMESTAMP NOT NULL DEFAULT '2016-05-28 20:55:33',
-    id_clte INTEGER REFERENCES auth_user (id) ON DELETE CASCADE  NOT NULL ,
-    id_lista INTEGER REFERENCES lista (id) ON DELETE CASCADE  NOT NULL ,
-    estado CHAR(1) NOT NULL DEFAULT 'T'
+timestamp: 2017-12-15T12:19:21.290010
+CREATE TABLE "campain"(
+    "id" SERIAL PRIMARY KEY,
+    "nombre" VARCHAR(56) NOT NULL,
+    "fecha" TIMESTAMP NOT NULL DEFAULT '2017-12-15 12:19:21',
+    "id_clte" INTEGER REFERENCES "auth_user" ("id") ON DELETE CASCADE  NOT NULL ,
+    "id_lista" INTEGER REFERENCES "lista" ("id") ON DELETE CASCADE  NOT NULL ,
+    "estado" CHAR(1) NOT NULL DEFAULT 'T'
 );
 success!
-timestamp: 2016-05-28T20:55:33.492599
-CREATE TABLE prefix(
-    id SERIAL PRIMARY KEY,
-    prefix VARCHAR(56) NOT NULL,
-    tarifa INTEGER REFERENCES tarifas (id) ON DELETE CASCADE  NOT NULL ,
-    estado CHAR(1) NOT NULL DEFAULT 'T',
-    nombre VARCHAR(56) NOT NULL
+timestamp: 2017-12-15T12:19:21.305278
+CREATE TABLE "prefix"(
+    "id" SERIAL PRIMARY KEY,
+    "prefix" VARCHAR(56) NOT NULL,
+    "tarifa" INTEGER REFERENCES "tarifas" ("id") ON DELETE CASCADE  NOT NULL ,
+    "estado" CHAR(1) NOT NULL DEFAULT 'T',
+    "valor" INTEGER NOT NULL DEFAULT 0,
+    "nombre" VARCHAR(56) NOT NULL
 );
-success!
-timestamp: 2016-05-31T23:35:59.509965
-ALTER TABLE prefix ADD valor INTEGER NOT NULL DEFAULT 0;
 success!
