@@ -1,10 +1,10 @@
-timestamp: 2017-12-15T12:19:21.106185
+timestamp: 2017-12-15T21:31:10.444389
 CREATE TABLE "tarifas"(
     "id" SERIAL PRIMARY KEY,
     "nombre" VARCHAR(56) NOT NULL
 );
 success!
-timestamp: 2017-12-15T12:19:21.123450
+timestamp: 2017-12-15T21:31:10.525510
 CREATE TABLE "auth_user"(
     "id" SERIAL PRIMARY KEY,
     "first_name" VARCHAR(128),
@@ -24,21 +24,21 @@ CREATE TABLE "auth_user"(
     "telefono" VARCHAR(128)
 );
 success!
-timestamp: 2017-12-15T12:19:21.141891
+timestamp: 2017-12-15T21:31:10.635643
 CREATE TABLE "auth_group"(
     "id" SERIAL PRIMARY KEY,
     "role" VARCHAR(512),
     "description" TEXT
 );
 success!
-timestamp: 2017-12-15T12:19:21.156855
+timestamp: 2017-12-15T21:31:10.768190
 CREATE TABLE "auth_membership"(
     "id" SERIAL PRIMARY KEY,
     "user_id" INTEGER REFERENCES "auth_user" ("id") ON DELETE CASCADE  ,
     "group_id" INTEGER REFERENCES "auth_group" ("id") ON DELETE CASCADE  
 );
 success!
-timestamp: 2017-12-15T12:19:21.174640
+timestamp: 2017-12-15T21:31:10.824370
 CREATE TABLE "auth_permission"(
     "id" SERIAL PRIMARY KEY,
     "group_id" INTEGER REFERENCES "auth_group" ("id") ON DELETE CASCADE  ,
@@ -47,7 +47,7 @@ CREATE TABLE "auth_permission"(
     "record_id" INTEGER
 );
 success!
-timestamp: 2017-12-15T12:19:21.190010
+timestamp: 2017-12-15T21:31:10.946790
 CREATE TABLE "auth_event"(
     "id" SERIAL PRIMARY KEY,
     "time_stamp" TIMESTAMP,
@@ -57,7 +57,7 @@ CREATE TABLE "auth_event"(
     "description" TEXT
 );
 success!
-timestamp: 2017-12-15T12:19:21.209565
+timestamp: 2017-12-15T21:31:11.105619
 CREATE TABLE "auth_cas"(
     "id" SERIAL PRIMARY KEY,
     "user_id" INTEGER REFERENCES "auth_user" ("id") ON DELETE CASCADE  ,
@@ -67,7 +67,7 @@ CREATE TABLE "auth_cas"(
     "renew" CHAR(1)
 );
 success!
-timestamp: 2017-12-15T12:19:21.227254
+timestamp: 2017-12-15T21:31:11.215037
 CREATE TABLE "gateway"(
     "id" SERIAL PRIMARY KEY,
     "nombre" VARCHAR(56) NOT NULL,
@@ -75,20 +75,20 @@ CREATE TABLE "gateway"(
     "estado" CHAR(1) NOT NULL DEFAULT 'T'
 );
 success!
-timestamp: 2017-12-15T12:19:21.240804
+timestamp: 2017-12-15T21:31:11.292481
 CREATE TABLE "estadosms"(
     "id" SERIAL PRIMARY KEY,
     "nombre" VARCHAR(56) NOT NULL
 );
 success!
-timestamp: 2017-12-15T12:19:21.255073
+timestamp: 2017-12-15T21:31:11.425947
 CREATE TABLE "lista"(
     "id" SERIAL PRIMARY KEY,
     "nombre" VARCHAR(56) NOT NULL,
     "id_clte" INTEGER REFERENCES "auth_user" ("id") ON DELETE CASCADE  NOT NULL 
 );
 success!
-timestamp: 2017-12-15T12:19:21.274061
+timestamp: 2017-12-15T21:31:11.506021
 CREATE TABLE "contactos"(
     "id" SERIAL PRIMARY KEY,
     "numero" VARCHAR(56) NOT NULL,
@@ -100,17 +100,17 @@ CREATE TABLE "contactos"(
     "estado" INTEGER REFERENCES "estadosms" ("id") ON DELETE CASCADE  NOT NULL DEFAULT 1 
 );
 success!
-timestamp: 2017-12-15T12:19:21.290010
+timestamp: 2017-12-15T21:31:11.584990
 CREATE TABLE "campain"(
     "id" SERIAL PRIMARY KEY,
     "nombre" VARCHAR(56) NOT NULL,
-    "fecha" TIMESTAMP NOT NULL DEFAULT '2017-12-15 12:19:21',
+    "fecha" TIMESTAMP NOT NULL DEFAULT '2017-12-15 21:31:11',
     "id_clte" INTEGER REFERENCES "auth_user" ("id") ON DELETE CASCADE  NOT NULL ,
     "id_lista" INTEGER REFERENCES "lista" ("id") ON DELETE CASCADE  NOT NULL ,
     "estado" CHAR(1) NOT NULL DEFAULT 'T'
 );
 success!
-timestamp: 2017-12-15T12:19:21.305278
+timestamp: 2017-12-15T21:31:11.662063
 CREATE TABLE "prefix"(
     "id" SERIAL PRIMARY KEY,
     "prefix" VARCHAR(56) NOT NULL,

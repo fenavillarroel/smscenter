@@ -1,16 +1,45 @@
-.navbar-default .navbar-collapse, .navbar-default .navbar-form {
-	background-color: #ffeb00; 
+body {
+  /*min-height: 750px;*/
 }
+
+.navbar-static-top {
+  margin-bottom: 0px;
+}
+
+.navbar-default {
+    background-color: #172548 ;
+    border-color: #337ab7;
+}
+
+.navbar-default .navbar-brand {
+    color: #FFF;
+}
+
+.navbar-default .navbar-brand:hover {
+    color: #337ab7;
+}
+
+.navbar-default .navbar-nav>li>a {
+    color: #FFF;
+}
+
+.navbar-default .navbar-nav>li>a:hover {
+    color: #FFF;
+}
+
+.navbar-default .navbar-toggle:hover {
+    background-color: white;
+}
+.navbar-default .navbar-nav> .open>a:focus {
+    color: #FFF;
+}
+
 #footer1 {
     position: fixed;
     left: 0;
     bottom: 0;
     width: 100%;
-    background-color:#ffeb00; 
-    color: white;
+    background-color:#172548; 
+    color: #FFF;
     text-align: center;
-}
-.jumbotron {
-    background-color:#0417f3;
-    color: white;
 }

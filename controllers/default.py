@@ -264,8 +264,11 @@ def downloadfile():
     left=[db.estadosms.on(db.contactos.estado==db.estadosms.id)]
     fields=[db.contactos.id,db.contactos.numero,db.contactos.msg,db.contactos.envio,db.contactos.entrega,db.estadosms.nombre]
     form=SQLFORM.smartgrid(db.contactos, constraints=dict(contactos=query),fields=fields,orderby=orderby,left=left,searchable=None,args=request.args[:1],
+                            exportclasses=dict(csv_with_hidden_cols=False,xml=False,html=False,csv=True,json=False,tsv=False,tsv_with_hidden_cols=False),
                             details=False,create=False,editable=False,deletable=False,csv=True,paginate=50,formstyle='bootstrap')
-                            
+  
+
+
     return dict(form=form)
 
 @auth.requires_login()

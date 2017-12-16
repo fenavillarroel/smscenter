@@ -19,7 +19,7 @@
   </head>
 <body>
 
-<nav class="navbar navbar-default">
+<nav class="navbar navbar-default navbar-static-top">
   <div class="container">
     <!-- Brand and toggle get grouped for better mobile display -->
     <div class="navbar-header">
@@ -66,8 +66,11 @@
         <li class="dropdown">
           <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">Usuario <span class="caret"></span></a>
           <ul class="dropdown-menu">
+           {{if not auth.user:}}
             <li><a href="{{=URL('default/user','login')}}">Login</a></li>
+           {{else:}}
             <li><a href="{{=URL('default/user','logout')}}">Logout</a></li>
+           {{pass}}
             <li><a href="{{=URL('default/user','change_password')}}">Cambiar Password</a></li>
             <li role="separator" class="divider"></li>
             <li><a href="{{=URL('default/user','profile')}}">Mis Datos</a></li>
@@ -80,19 +83,19 @@
 		{{=response.flash}}
 	</div>
 	{{pass}}
-  </div><!-- /.container-fluid -->
+  </div>--><!-- /.container-fluid -->
 </nav>
-    <div class='container'>'
+   <!-- <div class='container'>'-->
     {{include}}
-    </div>
+    <!--</div>-->
+    <div class="container">
     <footer id="footer1">
 
-      <div class="container">
         <span class="text-info">openDATA - Callao 3037 Las Condes. contacto@opendata.cl</span>
-      </div>
+      <!--</div>-->
 
     </footer>
-
+  </div>
   </body>
 </html>
 
