@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 {
+'  ': '  ',
 '!=': '!=',
 '!langcode!': 'es',
 '!langname!': 'Español',
@@ -306,6 +307,7 @@
 'Old password': 'Contraseña vieja',
 'Online book': 'Online book',
 'Online examples': 'Ejemplos en línea',
+'Opendata Copyright': 'Opendata Copyright',
 'Or': 'O',
 'or import from csv file': 'o importar desde archivo CSV',
 'or provide application url:': 'o provea URL de la aplicación:',

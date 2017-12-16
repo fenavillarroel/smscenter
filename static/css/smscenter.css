@@ -35,11 +35,16 @@ body {
 }
 
 #footer1 {
-    position: fixed;
+    position: absolute;
     left: 0;
     bottom: 0;
     width: 100%;
     background-color:#172548; 
     color: #FFF;
     text-align: center;
+}
+.container-fluid {
+    padding-left: 15px;
+    padding-right: 15px;
+    margin: 20px;
 }

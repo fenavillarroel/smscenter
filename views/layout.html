@@ -88,14 +88,21 @@
    <!-- <div class='container'>'-->
     {{include}}
     <!--</div>-->
-    <div class="container">
-    <footer id="footer1">
+ 
 
-        <span class="text-info">openDATA - Callao 3037 Las Condes. contacto@opendata.cl</span>
-      <!--</div>-->
-
+ <footer class="footer" id="footer1">
+      <div class="container-fluid">
+        <div class="copyright pull-left">{{=T('Opendata Copyright')}} &#169; {{=request.now.year}}</div>
+          <div id="poweredBy" class="pull-right">
+            {{=T('Powered by')}}
+            <a href="http://opendata.cl/">Opendata</a>
+          </div>
+      </div>
     </footer>
-  </div>
+
+
+
   </body>
 </html>
 
+ 
