@@ -7,11 +7,13 @@ $(document).ready(function(){
 				$("#show-me").show();
 				$("#watch-me").hide();
 				$('#si').val(1);
+				//$(this).prop('checked', false);
 			}
 			else {
 				$("#show-me").hide();
 				$("#watch-me").show();
 				$('#si').val(0);
+				$(this).prop('checked', false);
 			}
 		});
 });
